@@ -177,6 +177,13 @@
   font-size: 1rem;
 }
 
+.pn-last-updated {
+  margin: 0.25rem 0 0 0;
+  color: var(--pn-text-muted);
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
 /* Controls */
 .pn-controls {
   display: grid;

@@ -3430,203 +3430,22 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
   const WIDGET_CONFIG = {
   YOUTUBE_CHANNEL_ID: "UCz72pwrQRTXibU14NmHep8w",
   YOUTUBE_API_BASE: "https://www.googleapis.com/youtube/v3",
-  STORAGE_KEY_API_KEY: "pn-youtube-api-key",
+  DATA_BASE_URL: window.location.hostname === 'localhost' || window.location.protocol === 'file:'
+    ? './data'
+    : 'https://cdn.jsdelivr.net/gh/patristic-nectar/youtube-index@main/data',
   DEFAULT_ITEMS_PER_PAGE: 20,
   DEFAULT_SORT: "date-desc",
 };
 
 
-  // YouTube API integration
-  class YouTubeAPI {
-  constructor(apiKey) {
-    this.apiKey = apiKey;
-    this.baseUrl = WIDGET_CONFIG.YOUTUBE_API_BASE;
-    this.channelId = WIDGET_CONFIG.YOUTUBE_CHANNEL_ID;
-  }
-
-  async fetchWithErrorHandling(url) {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      if (response.status === 403) {
-        throw new Error('Invalid API key or quota exceeded. Please check your API key.');
-      } else if (response.status === 404) {
-        throw new Error('Resource not found. Please verify the channel ID.');
-      } else {
-        throw new Error(errorData.error?.message || `API error: ${response.status}`);
-      }
-    }
-
-    return response.json();
-  }
-
-  async getPlaylists() {
-    const playlists = [];
-    let nextPageToken = '';
-
-    do {
-      const url = `${this.baseUrl}/playlists?part=snippet,contentDetails&channelId=${this.channelId}&maxResults=50&key=${this.apiKey}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
-
-      const data = await this.fetchWithErrorHandling(url);
-
-      if (data.items) {
-        playlists.push(...data.items.map(item => ({
-          id: item.id,
-          title: item.snippet.title,
-          description: item.snippet.description,
-          thumbnailUrl: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
-          videoCount: item.contentDetails.itemCount,
-          publishedAt: item.snippet.publishedAt
-        })));
-      }
-
-      nextPageToken = data.nextPageToken || '';
-    } while (nextPageToken);
-
-    return playlists;
-  }
-
-  isPrivateOrDeletedVideo(video) {
-    const title = video.title || '';
-    const lowerTitle = title.toLowerCase();
-
-    // Check for common private/deleted video indicators
-    return (
-      lowerTitle === 'private video' ||
-      lowerTitle === 'deleted video' ||
-      lowerTitle === '[private video]' ||
-      lowerTitle === '[deleted video]' ||
-      title === '' ||
-      !video.thumbnailUrl ||
-      video.thumbnailUrl.includes('hqdefault_live.jpg') // Live stream placeholder
-    );
-  }
-
-  async getPlaylistVideos(playlistId) {
-    const videos = [];
-    let nextPageToken = '';
-
-    do {
-      const url = `${this.baseUrl}/playlistItems?part=snippet,contentDetails&playlistId=${playlistId}&maxResults=50&key=${this.apiKey}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
-
-      const data = await this.fetchWithErrorHandling(url);
-
-      if (data.items) {
-        const validVideos = data.items
-          .map(item => ({
-            id: item.contentDetails.videoId,
-            playlistId: playlistId,
-            title: item.snippet.title,
-            description: item.snippet.description,
-            thumbnailUrl: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
-            publishedAt: item.contentDetails.videoPublishedAt || item.snippet.publishedAt
-          }))
-          .filter(video => !this.isPrivateOrDeletedVideo(video));
-
-        videos.push(...validVideos);
-      }
-
-      nextPageToken = data.nextPageToken || '';
-    } while (nextPageToken);
-
-    return videos;
-  }
-
-  async getVideoDetails(videoIds) {
-    if (!videoIds || videoIds.length === 0) return [];
-
-    const details = [];
-    const batches = [];
-
-    for (let i = 0; i < videoIds.length; i += 50) {
-      batches.push(videoIds.slice(i, i + 50));
-    }
-
-    for (const batch of batches) {
-      const ids = batch.join(',');
-      const url = `${this.baseUrl}/videos?part=snippet,contentDetails,statistics&id=${ids}&key=${this.apiKey}`;
-
-      const data = await this.fetchWithErrorHandling(url);
-
-      if (data.items) {
-        details.push(...data.items.map(item => ({
-          id: item.id,
-          duration: item.contentDetails.duration,
-          durationFormatted: this.formatDuration(item.contentDetails.duration),
-          viewCount: parseInt(item.statistics.viewCount) || 0
-        })));
-      }
-    }
-
-    return details;
-  }
-
-  formatDuration(duration) {
-    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-    if (!match) return '0:00';
-
-    const hours = parseInt(match[1] || 0);
-    const minutes = parseInt(match[2] || 0);
-    const seconds = parseInt(match[3] || 0);
-
-    if (hours > 0) {
-      return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    } else {
-      return `${minutes}:${String(seconds).padStart(2, '0')}`;
-    }
-  }
-
-  async getAllVideos() {
-    const playlists = await this.getPlaylists();
-
-    const videoMap = new Map();
-
-    for (const playlist of playlists) {
-      const playlistVideos = await this.getPlaylistVideos(playlist.id);
-
-      for (const video of playlistVideos) {
-        if (videoMap.has(video.id)) {
-          videoMap.get(video.id).playlistIds.push(playlist.id);
-        } else {
-          videoMap.set(video.id, {
-            ...video,
-            playlistIds: [playlist.id],
-            videoUrl: `https://www.youtube.com/watch?v=${video.id}`
-          });
-        }
-      }
-    }
-
-    const uniqueVideos = Array.from(videoMap.values());
-
-    const videoIds = uniqueVideos.map(v => v.id);
-    const videoDetails = await this.getVideoDetails(videoIds);
-
-    const detailsMap = new Map(videoDetails.map(d => [d.id, d]));
-
-    // Filter out videos that don't have details (likely private/deleted)
-    return uniqueVideos
-      .filter(video => detailsMap.has(video.id))
-      .map(video => ({
-        ...video,
-        duration: detailsMap.get(video.id).duration,
-        durationFormatted: detailsMap.get(video.id).durationFormatted,
-        viewCount: detailsMap.get(video.id).viewCount
-      }));
-  }
-}
-
-
   // Alpine.js component
   function patristicNectarWidget() {
   return {
-    apiKeyInput: '',
-    hasApiKey: false,
     loading: false,
     error: null,
     playlists: [],
     videos: [],
+    lastUpdated: null,
     searchQuery: '',
     selectedPlaylist: '',
     sortBy: WIDGET_CONFIG.DEFAULT_SORT,
@@ -3704,12 +3523,7 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
     },
 
     async init() {
-      const storedKey = localStorage.getItem(WIDGET_CONFIG.STORAGE_KEY_API_KEY);
-      if (storedKey) {
-        this.apiKeyInput = storedKey;
-        this.hasApiKey = true;
-        await this.loadData();
-      }
+      await this.loadData();
 
       this.$watch('searchQuery', () => { this.currentPage = 1; });
       this.$watch('selectedPlaylist', () => { this.currentPage = 1; });
@@ -3721,34 +3535,32 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
       this.currentPage = 1;
     },
 
-    async setApiKey() {
-      if (!this.apiKeyInput.trim()) {
-        this.error = 'Please enter an API key';
-        return;
-      }
-      localStorage.setItem(WIDGET_CONFIG.STORAGE_KEY_API_KEY, this.apiKeyInput);
-      this.hasApiKey = true;
-      await this.loadData();
-    },
-
-    resetApiKey() {
-      localStorage.removeItem(WIDGET_CONFIG.STORAGE_KEY_API_KEY);
-      this.hasApiKey = false;
-      this.apiKeyInput = '';
-      this.error = null;
-      this.videos = [];
-      this.playlists = [];
-      this.collapsedPlaylists = {};
-    },
-
     async loadData() {
       this.loading = true;
       this.error = null;
 
       try {
-        const api = new YouTubeAPI(this.apiKeyInput);
-        this.playlists = await api.getPlaylists();
-        this.videos = await api.getAllVideos();
+        const baseUrl = WIDGET_CONFIG.DATA_BASE_URL;
+
+        // Fetch all three JSON files in parallel
+        const [playlistsRes, videosRes, metadataRes] = await Promise.all([
+          fetch(`${baseUrl}/playlists.json`),
+          fetch(`${baseUrl}/videos.json`),
+          fetch(`${baseUrl}/metadata.json`)
+        ]);
+
+        if (!playlistsRes.ok || !videosRes.ok) {
+          throw new Error('Failed to load video data');
+        }
+
+        this.playlists = await playlistsRes.json();
+        this.videos = await videosRes.json();
+
+        // Load metadata (optional, won't fail if missing)
+        if (metadataRes.ok) {
+          const metadata = await metadataRes.json();
+          this.lastUpdated = metadata.timestamp;
+        }
 
         // Initialize all playlists as collapsed
         this.collapsedPlaylists = {};
@@ -3756,7 +3568,7 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
           this.collapsedPlaylists[playlist.id] = true;
         });
       } catch (err) {
-        this.error = err.message || 'Failed to load videos. Please check your API key.';
+        this.error = err.message || 'Failed to load videos. Please try again later.';
         console.error('Widget error:', err);
       } finally {
         this.loading = false;
@@ -3834,20 +3646,6 @@ window.patristicNectarWidget = patristicNectarWidget;
     const container = document.getElementById('patristic-nectar-widget');
     if (container) {
       container.innerHTML = `<div x-data="patristicNectarWidget()" x-init="init()" class="pn-widget">
-  <div x-show="!hasApiKey" class="pn-config">
-    <h3>Configure YouTube API Key</h3>
-    <p>To use this widget, you need a YouTube Data API key.</p>
-    <div class="pn-config-form">
-      <input type="text" x-model="apiKeyInput" placeholder="Enter YouTube API Key" class="pn-input">
-      <button @click="setApiKey()" class="pn-btn pn-btn-primary">Save Key</button>
-    </div>
-    <p class="pn-help-text">
-      <a href="https://developers.google.com/youtube/v3/getting-started" target="_blank" rel="noopener">
-        How to get an API key
-      </a>
-    </p>
-  </div>
-
   <div x-show="loading" class="pn-loading">
     <div class="pn-spinner"></div>
     <p>Loading videos from Patristic Nectar...</p>
@@ -3855,13 +3653,13 @@ window.patristicNectarWidget = patristicNectarWidget;
 
   <div x-show="error" class="pn-error">
     <p class="pn-error-message" x-text="error"></p>
-    <button @click="resetApiKey()" class="pn-btn">Change API Key</button>
   </div>
 
-  <div x-show="hasApiKey && !loading && !error" class="pn-main">
+  <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
       <h2>Patristic Nectar Videos</h2>
       <p class="pn-subtitle" x-text="\`\${totalVideos} videos in \${playlistsWithVideos.length} playlists\`"></p>
+      <p x-show="lastUpdated" class="pn-last-updated" x-text="\`Last updated: \${formatDate(lastUpdated)}\`"></p>
     </div>
 
     <div class="pn-controls">
@@ -4030,20 +3828,6 @@ window.patristicNectarWidget = patristicNectarWidget;
       const container = document.getElementById(containerId || 'patristic-nectar-widget');
       if (container) {
         container.innerHTML = `<div x-data="patristicNectarWidget()" x-init="init()" class="pn-widget">
-  <div x-show="!hasApiKey" class="pn-config">
-    <h3>Configure YouTube API Key</h3>
-    <p>To use this widget, you need a YouTube Data API key.</p>
-    <div class="pn-config-form">
-      <input type="text" x-model="apiKeyInput" placeholder="Enter YouTube API Key" class="pn-input">
-      <button @click="setApiKey()" class="pn-btn pn-btn-primary">Save Key</button>
-    </div>
-    <p class="pn-help-text">
-      <a href="https://developers.google.com/youtube/v3/getting-started" target="_blank" rel="noopener">
-        How to get an API key
-      </a>
-    </p>
-  </div>
-
   <div x-show="loading" class="pn-loading">
     <div class="pn-spinner"></div>
     <p>Loading videos from Patristic Nectar...</p>
@@ -4051,13 +3835,13 @@ window.patristicNectarWidget = patristicNectarWidget;
 
   <div x-show="error" class="pn-error">
     <p class="pn-error-message" x-text="error"></p>
-    <button @click="resetApiKey()" class="pn-btn">Change API Key</button>
   </div>
 
-  <div x-show="hasApiKey && !loading && !error" class="pn-main">
+  <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
       <h2>Patristic Nectar Videos</h2>
       <p class="pn-subtitle" x-text="\`\${totalVideos} videos in \${playlistsWithVideos.length} playlists\`"></p>
+      <p x-show="lastUpdated" class="pn-last-updated" x-text="\`Last updated: \${formatDate(lastUpdated)}\`"></p>
     </div>
 
     <div class="pn-controls">
