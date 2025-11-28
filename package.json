@@ -1,0 +1,20 @@
+{
+  "name": "patristic-nectar-widget",
+  "version": "1.0.0",
+  "description": "A searchable index of all Patristic Nectar YouTube videos",
+  "main": "dist/widget.js",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "keywords": [
+    "youtube",
+    "widget",
+    "patristic-nectar",
+    "embeddable"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "alpinejs": "^3.13.0"
+  }
+}

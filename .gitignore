@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build output (optional - uncomment if you want to build locally)
+# dist/
+
+# Local configuration (API keys, etc.)
+local-config.js
+config.local.js
+.env.local

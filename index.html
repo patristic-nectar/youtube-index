@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Index Widget</title>
+  <link rel="stylesheet" href="dist/widget.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="patristic-nectar-widget"></div>
+
+  <!-- Local config for development (gitignored) -->
+  <script src="local-config.js"></script>
+
+  <!-- Widget -->
+  <script src="dist/widget.js"></script>
+
+  <!-- Auto-fill API key from local config if available -->
+  <script>
+    if (window.LOCAL_CONFIG && window.LOCAL_CONFIG.YOUTUBE_API_KEY) {
+      localStorage.setItem('pn-youtube-api-key', window.LOCAL_CONFIG.YOUTUBE_API_KEY);
+    }
+  </script>
+</body>
+</html>
