@@ -1,0 +1,186 @@
+<div x-data="patristicNectarWidget()" x-init="init()" class="pn-widget">
+  <div x-show="!hasApiKey" class="pn-config">
+    <h3>Configure YouTube API Key</h3>
+    <p>To use this widget, you need a YouTube Data API key.</p>
+    <div class="pn-config-form">
+      <input type="text" x-model="apiKeyInput" placeholder="Enter YouTube API Key" class="pn-input">
+      <button @click="setApiKey()" class="pn-btn pn-btn-primary">Save Key</button>
+    </div>
+    <p class="pn-help-text">
+      <a href="https://developers.google.com/youtube/v3/getting-started" target="_blank" rel="noopener">
+        How to get an API key
+      </a>
+    </p>
+  </div>
+
+  <div x-show="loading" class="pn-loading">
+    <div class="pn-spinner"></div>
+    <p>Loading videos from Patristic Nectar...</p>
+  </div>
+
+  <div x-show="error" class="pn-error">
+    <p class="pn-error-message" x-text="error"></p>
+    <button @click="resetApiKey()" class="pn-btn">Change API Key</button>
+  </div>
+
+  <div x-show="hasApiKey && !loading && !error" class="pn-main">
+    <div class="pn-header">
+      <h2>Patristic Nectar Videos</h2>
+      <p class="pn-subtitle" x-text="`${totalVideos} videos in ${playlistsWithVideos.length} playlists`"></p>
+    </div>
+
+    <div class="pn-controls">
+      <input
+        type="search"
+        x-model="searchQuery"
+        placeholder="Search videos..."
+        class="pn-search pn-input"
+      >
+
+      <select x-model="selectedPlaylist" class="pn-select">
+        <option value="">All Playlists</option>
+        <template x-for="playlist in playlists" :key="playlist.id">
+          <option :value="playlist.id" x-text="playlist.title"></option>
+        </template>
+      </select>
+
+      <select x-model="sortBy" class="pn-select">
+        <option value="date-desc">Newest First</option>
+        <option value="date-asc">Oldest First</option>
+        <option value="title-asc">Title A-Z</option>
+        <option value="title-desc">Title Z-A</option>
+        <option value="views-desc">Most Views</option>
+        <option value="duration-desc">Longest First</option>
+        <option value="duration-asc">Shortest First</option>
+      </select>
+    </div>
+
+    <div class="pn-toolbar">
+      <button @click="toggleLayout()" class="pn-btn pn-btn-sm pn-layout-toggle">
+        <svg x-show="layoutMode === 'list'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+        </svg>
+        <svg x-show="layoutMode === 'grid'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+        <span x-text="layoutMode === 'list' ? 'Grid View' : 'List View'"></span>
+      </button>
+      <div style="display: flex; gap: 0.5rem;">
+        <button @click="expandAll()" class="pn-btn pn-btn-sm">Expand All</button>
+        <button @click="collapseAll()" class="pn-btn pn-btn-sm">Collapse All</button>
+      </div>
+    </div>
+
+    <div x-show="layoutMode === 'grid' && allFilteredVideos.length === 0" class="pn-empty">
+      <p>No videos found matching your search.</p>
+    </div>
+
+    <div x-show="layoutMode === 'list' && playlistsWithVideos.length === 0" class="pn-empty">
+      <p>No videos found matching your search.</p>
+    </div>
+
+    <!-- List View (Playlist-based) -->
+    <div x-show="layoutMode === 'list' && playlistsWithVideos.length > 0" class="pn-playlists">
+      <template x-for="group in playlistsWithVideos" :key="group.playlist.id">
+        <div class="pn-playlist-section">
+          <div
+            class="pn-playlist-header"
+            @click="togglePlaylist(group.playlist.id)"
+            :class="{ 'pn-collapsed': group.isCollapsed }"
+          >
+            <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="pn-playlist-info">
+              <div class="pn-playlist-title-group">
+                <h3>
+                  <span x-text="group.playlist.title"></span>
+                  <span class="pn-video-count" x-text="`(${group.videos.length} videos)`"></span>
+                </h3>
+                <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+              </div>
+            </div>
+          </div>
+
+          <div x-show="!group.isCollapsed" class="pn-video-list">
+            <template x-for="video in group.videos" :key="video.id">
+              <div class="pn-video-item">
+                <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
+                  <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
+                  <span class="pn-duration" x-text="video.durationFormatted"></span>
+                </a>
+                <div class="pn-video-details">
+                  <h4 class="pn-video-title">
+                    <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+                  </h4>
+                  <p class="pn-video-meta">
+                    <span x-text="formatDate(video.publishedAt)"></span>
+                    <span> • </span>
+                    <span x-text="formatViews(video.viewCount)"></span> views
+                  </p>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Grid View (Playlist-based) -->
+    <div x-show="layoutMode === 'grid' && playlistsWithVideos.length > 0" class="pn-playlists">
+      <template x-for="group in playlistsWithVideos" :key="group.playlist.id">
+        <div class="pn-playlist-section">
+          <div
+            class="pn-playlist-header"
+            @click="togglePlaylist(group.playlist.id)"
+            :class="{ 'pn-collapsed': group.isCollapsed }"
+          >
+            <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="pn-playlist-info">
+              <div class="pn-playlist-title-group">
+                <h3>
+                  <span x-text="group.playlist.title"></span>
+                  <span class="pn-video-count" x-text="`(${group.videos.length} videos)`"></span>
+                </h3>
+                <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+              </div>
+            </div>
+          </div>
+
+          <div x-show="!group.isCollapsed" class="pn-video-grid-container">
+            <div class="pn-video-grid">
+              <template x-for="video in group.videos" :key="video.id">
+                <div class="pn-video-card">
+                  <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
+                    <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
+                    <span class="pn-duration" x-text="video.durationFormatted"></span>
+                  </a>
+                  <div class="pn-video-info">
+                    <h3 class="pn-video-title">
+                      <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+                    </h3>
+                    <p class="pn-video-meta">
+                      <span x-text="formatDate(video.publishedAt)"></span>
+                      <span> • </span>
+                      <span x-text="formatViews(video.viewCount)"></span> views
+                    </p>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</div>
