@@ -1,11 +1,10 @@
 function patristicNectarWidget() {
   return {
-    apiKeyInput: '',
-    hasApiKey: false,
     loading: false,
     error: null,
     playlists: [],
     videos: [],
+    lastUpdated: null,
     searchQuery: '',
     selectedPlaylist: '',
     sortBy: WIDGET_CONFIG.DEFAULT_SORT,
@@ -83,12 +82,7 @@ function patristicNectarWidget() {
     },
 
     async init() {
-      const storedKey = localStorage.getItem(WIDGET_CONFIG.STORAGE_KEY_API_KEY);
-      if (storedKey) {
-        this.apiKeyInput = storedKey;
-        this.hasApiKey = true;
-        await this.loadData();
-      }
+      await this.loadData();
 
       this.$watch('searchQuery', () => { this.currentPage = 1; });
       this.$watch('selectedPlaylist', () => { this.currentPage = 1; });
@@ -100,34 +94,32 @@ function patristicNectarWidget() {
       this.currentPage = 1;
     },
 
-    async setApiKey() {
-      if (!this.apiKeyInput.trim()) {
-        this.error = 'Please enter an API key';
-        return;
-      }
-      localStorage.setItem(WIDGET_CONFIG.STORAGE_KEY_API_KEY, this.apiKeyInput);
-      this.hasApiKey = true;
-      await this.loadData();
-    },
-
-    resetApiKey() {
-      localStorage.removeItem(WIDGET_CONFIG.STORAGE_KEY_API_KEY);
-      this.hasApiKey = false;
-      this.apiKeyInput = '';
-      this.error = null;
-      this.videos = [];
-      this.playlists = [];
-      this.collapsedPlaylists = {};
-    },
-
     async loadData() {
       this.loading = true;
       this.error = null;
 
       try {
-        const api = new YouTubeAPI(this.apiKeyInput);
-        this.playlists = await api.getPlaylists();
-        this.videos = await api.getAllVideos();
+        const baseUrl = WIDGET_CONFIG.DATA_BASE_URL;
+
+        // Fetch all three JSON files in parallel
+        const [playlistsRes, videosRes, metadataRes] = await Promise.all([
+          fetch(`${baseUrl}/playlists.json`),
+          fetch(`${baseUrl}/videos.json`),
+          fetch(`${baseUrl}/metadata.json`)
+        ]);
+
+        if (!playlistsRes.ok || !videosRes.ok) {
+          throw new Error('Failed to load video data');
+        }
+
+        this.playlists = await playlistsRes.json();
+        this.videos = await videosRes.json();
+
+        // Load metadata (optional, won't fail if missing)
+        if (metadataRes.ok) {
+          const metadata = await metadataRes.json();
+          this.lastUpdated = metadata.timestamp;
+        }
 
         // Initialize all playlists as collapsed
         this.collapsedPlaylists = {};
@@ -135,7 +127,7 @@ function patristicNectarWidget() {
           this.collapsedPlaylists[playlist.id] = true;
         });
       } catch (err) {
-        this.error = err.message || 'Failed to load videos. Please check your API key.';
+        this.error = err.message || 'Failed to load videos. Please try again later.';
         console.error('Widget error:', err);
       } finally {
         this.loading = false;

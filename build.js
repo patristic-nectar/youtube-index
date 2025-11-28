@@ -10,9 +10,6 @@ try {
   const config = fs.readFileSync("src/config.js", "utf8");
   console.log("Loaded config.js");
 
-  const youtubeApi = fs.readFileSync("src/youtube-api.js", "utf8");
-  console.log("Loaded youtube-api.js");
-
   const app = fs.readFileSync("src/app.js", "utf8");
   console.log("Loaded app.js");
 
@@ -41,9 +38,6 @@ try {
 
   // Widget configuration
   ${config}
-
-  // YouTube API integration
-  ${youtubeApi}
 
   // Alpine.js component
   ${app}

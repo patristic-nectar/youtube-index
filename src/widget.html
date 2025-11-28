@@ -1,18 +1,4 @@
 <div x-data="patristicNectarWidget()" x-init="init()" class="pn-widget">
-  <div x-show="!hasApiKey" class="pn-config">
-    <h3>Configure YouTube API Key</h3>
-    <p>To use this widget, you need a YouTube Data API key.</p>
-    <div class="pn-config-form">
-      <input type="text" x-model="apiKeyInput" placeholder="Enter YouTube API Key" class="pn-input">
-      <button @click="setApiKey()" class="pn-btn pn-btn-primary">Save Key</button>
-    </div>
-    <p class="pn-help-text">
-      <a href="https://developers.google.com/youtube/v3/getting-started" target="_blank" rel="noopener">
-        How to get an API key
-      </a>
-    </p>
-  </div>
-
   <div x-show="loading" class="pn-loading">
     <div class="pn-spinner"></div>
     <p>Loading videos from Patristic Nectar...</p>
@@ -20,13 +6,13 @@
 
   <div x-show="error" class="pn-error">
     <p class="pn-error-message" x-text="error"></p>
-    <button @click="resetApiKey()" class="pn-btn">Change API Key</button>
   </div>
 
-  <div x-show="hasApiKey && !loading && !error" class="pn-main">
+  <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
       <h2>Patristic Nectar Videos</h2>
       <p class="pn-subtitle" x-text="`${totalVideos} videos in ${playlistsWithVideos.length} playlists`"></p>
+      <p x-show="lastUpdated" class="pn-last-updated" x-text="`Last updated: ${formatDate(lastUpdated)}`"></p>
     </div>
 
     <div class="pn-controls">
