@@ -48,7 +48,13 @@ function patristicNectarWidget() {
     },
 
     get totalVideos() {
-      return this.playlistsWithVideos.reduce((sum, group) => sum + group.videos.length, 0);
+      const uniqueVideoIds = new Set();
+      this.playlistsWithVideos.forEach(group => {
+        group.videos.forEach(video => {
+          uniqueVideoIds.add(video.id);
+        });
+      });
+      return uniqueVideoIds.size;
     },
 
     get allFilteredVideos() {
