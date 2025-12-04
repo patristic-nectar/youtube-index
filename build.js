@@ -10,6 +10,9 @@ try {
   const config = fs.readFileSync("src/config.js", "utf8");
   console.log("Loaded config.js");
 
+  const squarespaceColors = fs.readFileSync("src/squarespace-colors.js", "utf8");
+  console.log("Loaded squarespace-colors.js");
+
   const app = fs.readFileSync("src/app.js", "utf8");
   console.log("Loaded app.js");
 
@@ -39,6 +42,9 @@ try {
   // Widget configuration
   ${config}
 
+  // Squarespace color integration
+  ${squarespaceColors}
+
   // Alpine.js component
   ${app}
 
@@ -47,8 +53,16 @@ try {
     const container = document.getElementById('patristic-nectar-widget');
     if (container) {
       container.innerHTML = \`${escapedHtml}\`;
+
+      // Apply Squarespace colors after a short delay to ensure styles are loaded
+      setTimeout(function() {
+        applySquarespaceColors();
+      }, 50);
     }
   });
+
+  // Expose applySquarespaceColors globally for manual re-triggering (useful for testing)
+  window.applySquarespaceColors = applySquarespaceColors;
 
   // Export for manual initialization if needed
   window.PatristicNectarWidget = {

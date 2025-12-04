@@ -1,11 +1,12 @@
 .pn-widget {
-  --pn-primary: #1a73e8;
-  --pn-primary-hover: #1557b0;
-  --pn-bg: #ffffff;
-  --pn-surface: #f8f9fa;
-  --pn-border: #dadce0;
-  --pn-text: #202124;
-  --pn-text-secondary: #5f6368;
+  /* Widget colors - can be dynamically set via JavaScript for Squarespace integration */
+  --pn-primary: var(--site-color-accent, #1a73e8);
+  --pn-primary-hover: var(--site-color-accent-dark, #1557b0);
+  --pn-bg: var(--site-color-bg, #ffffff);
+  --pn-surface: var(--site-color-surface, #f8f9fa);
+  --pn-border: var(--site-color-border, #dadce0);
+  --pn-text: var(--site-color-text, #202124);
+  --pn-text-secondary: var(--site-color-text-secondary, #5f6368);
   --pn-error: #d93025;
   --pn-space-xs: 0.25rem;
   --pn-space-sm: 0.5rem;
@@ -62,6 +63,8 @@
   border-radius: var(--pn-radius-sm);
   font-size: 1rem;
   font-family: var(--pn-font-family);
+  background: var(--pn-bg);
+  color: var(--pn-text);
   transition: border-color 0.2s;
 }
 
@@ -74,7 +77,7 @@
   padding: 0.75rem 1.5rem;
   border: 1px solid var(--pn-border);
   border-radius: var(--pn-radius-sm);
-  background: white;
+  background: var(--pn-bg);
   color: var(--pn-text);
   font-size: 1rem;
   font-family: var(--pn-font-family);
@@ -94,12 +97,13 @@
 
 .pn-btn-primary {
   background: var(--pn-primary);
-  color: white;
+  color: var(--site-color-accent-text, white);
   border-color: var(--pn-primary);
 }
 
 .pn-btn-primary:hover:not(:disabled) {
   background: var(--pn-primary-hover);
+  color: var(--site-color-accent-text, white);
   border-color: var(--pn-primary-hover);
 }
 
@@ -202,7 +206,8 @@
   border-radius: var(--pn-radius-sm);
   font-size: 1rem;
   font-family: var(--pn-font-family);
-  background: white;
+  background: var(--pn-bg);
+  color: var(--pn-text);
   cursor: pointer;
   transition: border-color 0.2s;
 }
@@ -246,7 +251,7 @@
 }
 
 .pn-playlist-section {
-  background: white;
+  background: var(--pn-bg);
   border: 1px solid var(--pn-border);
   border-radius: var(--pn-radius);
   overflow: hidden;
@@ -264,7 +269,7 @@
 }
 
 .pn-playlist-header:hover {
-  background: #e8eaed;
+  background: var(--site-color-surface-hover, #e8eaed);
 }
 
 .pn-chevron {
@@ -412,7 +417,7 @@
 }
 
 .pn-video-card {
-  background: white;
+  background: var(--pn-bg);
   border: 1px solid var(--pn-border);
   border-radius: var(--pn-radius);
   overflow: hidden;
