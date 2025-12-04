@@ -3,7 +3,7 @@ const WIDGET_CONFIG = {
   YOUTUBE_API_BASE: "https://www.googleapis.com/youtube/v3",
   DATA_BASE_URL: window.location.hostname === 'localhost' || window.location.protocol === 'file:'
     ? './data'
-    : 'https://cdn.jsdelivr.net/gh/patristic-nectar/youtube-index@main/data',
+    : 'https://raw.githubusercontent.com/patristic-nectar/youtube-index/main/data',
   DEFAULT_ITEMS_PER_PAGE: 20,
   DEFAULT_SORT: "date-desc",
 };
