@@ -101,7 +101,6 @@ class YouTubeAPI {
         const validVideos = data.items
           .map(item => ({
             id: item.contentDetails.videoId,
-            playlistId: playlistId,
             title: item.snippet.title,
             description: item.snippet.description,
             thumbnailUrl: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
