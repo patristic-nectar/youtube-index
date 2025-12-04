@@ -3457,7 +3457,12 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
     get playlistsWithVideos() {
       const playlistGroups = [];
 
-      for (const playlist of this.playlists) {
+      // Sort playlists alphabetically by title
+      const sortedPlaylists = [...this.playlists].sort((a, b) =>
+        a.title.localeCompare(b.title)
+      );
+
+      for (const playlist of sortedPlaylists) {
         let playlistVideos = this.videos.filter(v =>
           v.playlistIds.includes(playlist.id)
         );
