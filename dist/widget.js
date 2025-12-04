@@ -3582,8 +3582,45 @@ function applySquarespaceColors() {
       return luminance > 0.5 ? '#000000' : '#ffffff';
     }
 
+    // Helper function to lighten a color
+    function lightenColor(colorString, percent = 20) {
+      const parsed = parseColor(colorString);
+      if (!parsed) return colorString;
+
+      const factor = percent / 100;
+      const r = Math.round(parsed.r + (255 - parsed.r) * factor);
+      const g = Math.round(parsed.g + (255 - parsed.g) * factor);
+      const b = Math.round(parsed.b + (255 - parsed.b) * factor);
+
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Helper function to ensure accent has good contrast with background
+    function ensureAccentContrast(accentColorString, bgColorString) {
+      const accentParsed = parseColor(accentColorString);
+      const bgParsed = parseColor(bgColorString);
+
+      if (!accentParsed || !bgParsed) return accentColorString;
+
+      const accentLuminance = getLuminance(accentParsed.r, accentParsed.g, accentParsed.b);
+      const bgLuminance = getLuminance(bgParsed.r, bgParsed.g, bgParsed.b);
+
+      // If background is dark, ensure accent is light enough
+      if (bgLuminance < 0.5 && accentLuminance < 0.5) {
+        return lightenColor(accentColorString, 40);
+      }
+
+      // If background is light, ensure accent is dark enough
+      if (bgLuminance > 0.5 && accentLuminance > 0.5) {
+        return darkenColor(accentColorString, 30);
+      }
+
+      return accentColorString;
+    }
+
     // Calculate derived colors
-    const accentDark = darkenColor(accentColor, 15);
+    const accentAdjusted = ensureAccentContrast(accentColor, bgColor);
+    const accentDark = darkenColor(accentAdjusted, 15);
     const surfaceColor = createSurfaceColor(bgColor);
     const borderColor = createBorderColor(bgColor);
     const textSecondary = createSecondaryTextColor(textColor);
@@ -3595,7 +3632,7 @@ function applySquarespaceColors() {
     if (widgetContainer) {
       widgetContainer.style.setProperty('--site-color-text', textColor);
       widgetContainer.style.setProperty('--site-color-bg', bgColor);
-      widgetContainer.style.setProperty('--site-color-accent', accentColor);
+      widgetContainer.style.setProperty('--site-color-accent', accentAdjusted);
       widgetContainer.style.setProperty('--site-color-accent-dark', accentDark);
       widgetContainer.style.setProperty('--site-color-accent-text', accentText);
       widgetContainer.style.setProperty('--site-color-surface', surfaceColor);
@@ -3609,6 +3646,7 @@ function applySquarespaceColors() {
           text: textColor,
           bg: bgColor,
           accent: accentColor,
+          accentAdjusted,
           accentDark,
           accentText,
           surface: surfaceColor,
