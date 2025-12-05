@@ -161,36 +161,41 @@ class YouTubeAPI {
     }
   }
 
-  async getAllVideos() {
+  async getAllData() {
     const playlists = await this.getPlaylists();
 
     const videoMap = new Map();
+    const playlistToVideos = new Map();
 
+    // Fetch videos for each playlist and build relationships
     for (const playlist of playlists) {
       const playlistVideos = await this.getPlaylistVideos(playlist.id);
+      const videoIds = [];
 
       for (const video of playlistVideos) {
-        if (videoMap.has(video.id)) {
-          videoMap.get(video.id).playlistIds.push(playlist.id);
-        } else {
+        videoIds.push(video.id);
+
+        if (!videoMap.has(video.id)) {
           videoMap.set(video.id, {
             ...video,
-            playlistIds: [playlist.id],
             videoUrl: `https://www.youtube.com/watch?v=${video.id}`
           });
         }
       }
+
+      playlistToVideos.set(playlist.id, videoIds);
     }
 
+    // Get all unique videos
     const uniqueVideos = Array.from(videoMap.values());
 
+    // Fetch video details (duration, views)
     const videoIds = uniqueVideos.map(v => v.id);
     const videoDetails = await this.getVideoDetails(videoIds);
-
     const detailsMap = new Map(videoDetails.map(d => [d.id, d]));
 
     // Filter out videos that don't have details (likely private/deleted)
-    return uniqueVideos
+    const validVideos = uniqueVideos
       .filter(video => detailsMap.has(video.id))
       .map(video => ({
         ...video,
@@ -198,6 +203,20 @@ class YouTubeAPI {
         durationFormatted: detailsMap.get(video.id).durationFormatted,
         viewCount: detailsMap.get(video.id).viewCount
       }));
+
+    // Create a set of valid video IDs for filtering
+    const validVideoIds = new Set(validVideos.map(v => v.id));
+
+    // Add videoIds array to each playlist (only valid videos)
+    const playlistsWithVideos = playlists.map(playlist => ({
+      ...playlist,
+      videoIds: (playlistToVideos.get(playlist.id) || []).filter(id => validVideoIds.has(id))
+    }));
+
+    return {
+      playlists: playlistsWithVideos,
+      videos: validVideos
+    };
   }
 }
 
@@ -207,11 +226,27 @@ class YouTubeAPI {
 async function main() {
   console.log('Starting YouTube data fetch...\n');
 
-  // Validate API key
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  // Try to get API key from environment or local-config.js
+  let apiKey = process.env.YOUTUBE_API_KEY;
+
   if (!apiKey) {
-    console.error('Error: YOUTUBE_API_KEY environment variable is not set');
+    try {
+      const localConfigPath = path.join(process.cwd(), 'local-config.js');
+      const localConfigContent = await fs.readFile(localConfigPath, 'utf8');
+      const match = localConfigContent.match(/YOUTUBE_API_KEY:\s*['"]([^'"]+)['"]/);
+      if (match) {
+        apiKey = match[1];
+        console.log('Using API key from local-config.js\n');
+      }
+    } catch (err) {
+      // local-config.js doesn't exist or can't be read
+    }
+  }
+
+  if (!apiKey) {
+    console.error('Error: YOUTUBE_API_KEY not found');
     console.error('Set it with: export YOUTUBE_API_KEY=your_api_key_here');
+    console.error('Or add it to local-config.js (see local-config.js for format)');
     process.exit(1);
   }
 
@@ -219,14 +254,10 @@ async function main() {
     // Create API client
     const api = new YouTubeAPI(apiKey);
 
-    // Fetch playlists
-    console.log('Fetching playlists...');
-    const playlists = await api.getPlaylists();
+    // Fetch all data (playlists with videoIds and deduplicated videos)
+    console.log('Fetching playlists and videos...');
+    const { playlists, videos } = await api.getAllData();
     console.log(`Found ${playlists.length} playlists`);
-
-    // Fetch videos
-    console.log('\nFetching videos from all playlists...');
-    const videos = await api.getAllVideos();
     console.log(`Found ${videos.length} videos (deduplicated)`);
 
     // Create metadata
@@ -243,9 +274,20 @@ async function main() {
     // Write JSON files
     console.log('\nWriting data files...');
 
+    // Format playlists JSON with videoIds on single lines
+    const formatPlaylistsJSON = (playlists) => {
+      let json = JSON.stringify(playlists, null, 2);
+      // Replace videoIds arrays to be on a single line
+      json = json.replace(/"videoIds":\s*\[\s*([\s\S]*?)\s*\]/g, (match, content) => {
+        const ids = content.match(/"[^"]+"/g) || [];
+        return `"videoIds": [${ids.join(', ')}]`;
+      });
+      return json;
+    };
+
     await fs.writeFile(
       path.join(dataDir, 'playlists.json'),
-      JSON.stringify(playlists, null, 2)
+      formatPlaylistsJSON(playlists)
     );
     console.log('Created data/playlists.json');
 
