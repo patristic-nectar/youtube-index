@@ -529,13 +529,20 @@
   }
 
   .pn-video-item {
-    flex-direction: column;
+    gap: var(--pn-space-xs);
   }
 
   .pn-video-thumbnail {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16/9;
+    width: 100px;
+    height: 56px;
+  }
+
+  .pn-video-title {
+    font-size: 0.8125rem;
+  }
+
+  .pn-video-meta {
+    font-size: 0.75rem;
   }
 
   .pn-playlist-info {
