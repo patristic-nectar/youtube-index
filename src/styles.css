@@ -520,12 +520,13 @@
   }
 
   .pn-toolbar {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--pn-space-sm);
   }
 
-  .pn-toolbar > div {
-    width: 100%;
+  .pn-toolbar > * {
+    flex: 0 0 auto;
   }
 
   .pn-video-item {
