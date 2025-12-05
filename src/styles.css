@@ -345,6 +345,30 @@
   min-width: 0;
 }
 
+.pn-playlist-youtube-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--pn-radius-sm);
+  color: var(--pn-text-secondary);
+  transition: all 0.2s;
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.pn-playlist-youtube-link:hover {
+  background: rgba(255, 0, 0, 0.1);
+  color: #ff0000;
+  transform: scale(1.1);
+}
+
+.pn-playlist-youtube-link svg {
+  flex-shrink: 0;
+}
+
 /* Video List */
 .pn-video-list {
   border-top: 1px solid var(--pn-border);
