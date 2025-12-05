@@ -1,7 +1,31 @@
 [
   {
+    "id": "PLuPBy_6R3BLZ8Z2eCaapurhFeQTpfj0ry",
+    "title": "Jonathan Pageau - Speakers",
+    "description": "Jonathan Pageau is a professional artist, writer, and public speaker based in Quebec, Canada. He specializes in carving Orthodox Christian icons and designing traditional sacred images and products. Through his YouTube channel and podcast, The Symbolic World, he explores how ancient symbolic patterns inform our experiences of the world and can re-enchant contemporary life.",
+    "thumbnailUrl": "https://i.ytimg.com/vi/Cm_9f67riFY/mqdefault.jpg",
+    "videoCount": 8,
+    "publishedAt": "2025-12-05T20:40:56.921003Z"
+  },
+  {
+    "id": "PLuPBy_6R3BLaL4_F0HLnJQ3bRBBj_qiU7",
+    "title": "Bishop Irenei - Speakers",
+    "description": "His Grace Irenei was appointed Bishop of London and Western Europe by decision of the Holy Synod on 7th / 20th September 2018. Previously, he had been Bishop of Sacramento, Vicar of the Western American Diocese, and had served as Administrator of the Diocese of Great Britain and Ireland from 2017.",
+    "thumbnailUrl": "https://i.ytimg.com/vi/IWCjjWg-Hkg/mqdefault.jpg",
+    "videoCount": 75,
+    "publishedAt": "2025-12-05T20:31:00.48515Z"
+  },
+  {
+    "id": "PLuPBy_6R3BLa34h1qwN5jbsGWZT2Rgb8h",
+    "title": "Father Josiah Trenham - Speakers",
+    "description": "Father Josiah Trenham is a native Southern Californian. He was ordained to the Holy Priesthood in 1993, and was awarded the Ph.D. in Theology from the University of Durham, England, in 2004. He has served as pastor of St. Andrew Orthodox Church in Riverside, Ca. since 1998.  Father Josiah was married in 1988, and has ten children and five grandchildren.",
+    "thumbnailUrl": "https://i.ytimg.com/vi/JCJFdEgAWSE/mqdefault.jpg",
+    "videoCount": 574,
+    "publishedAt": "2025-12-05T19:56:03.218752Z"
+  },
+  {
     "id": "PLuPBy_6R3BLYcSY2TYIwOPdTROvz59uL1",
-    "title": "Fasting",
+    "title": "Fasting - Topics",
     "description": "",
     "thumbnailUrl": "https://i.ytimg.com/vi/LboRxpIvS-g/mqdefault.jpg",
     "videoCount": 6,
@@ -9,7 +33,7 @@
   },
   {
     "id": "PLuPBy_6R3BLY3ATw9BcJNUqdYpX3d_yjj",
-    "title": "Prayer & the Spiritual Life",
+    "title": "Prayer & the Spiritual Life - Topics",
     "description": "",
     "thumbnailUrl": "https://i.ytimg.com/vi/dYWsPvcXItw/mqdefault.jpg",
     "videoCount": 34,
@@ -17,7 +41,7 @@
   },
   {
     "id": "PLuPBy_6R3BLYlwAtyZmoyWxshfMmXWnKJ",
-    "title": "Iconography",
+    "title": "Iconography - Topics",
     "description": "",
     "thumbnailUrl": "https://i.ytimg.com/vi/zii3IAXJrG0/mqdefault.jpg",
     "videoCount": 8,
@@ -25,7 +49,7 @@
   },
   {
     "id": "PLuPBy_6R3BLY5d1Sqfe4xKiYhki0s1GhE",
-    "title": "Marriage",
+    "title": "Marriage - Topics",
     "description": "",
     "thumbnailUrl": "https://i.ytimg.com/vi/YRhym1TUf9I/mqdefault.jpg",
     "videoCount": 17,
@@ -33,8 +57,8 @@
   },
   {
     "id": "PLuPBy_6R3BLazHoLynACuMMKCKNpTqG-q",
-    "title": "Father Alexis Torrance",
-    "description": "Interviews with Father Alexis Torrance",
+    "title": "Father Alexis Torrance - Speakers",
+    "description": "Father Alexis Torrance received his undergraduate and graduate training in Theology at the University of Oxford. He has held research fellowships at the Notre Dame Institute for Advanced Study, the Seeger Center for Hellenic Studies at Princeton University, the Aristotle University of Thessaloniki, and Dumbarton Oaks in Washington DC. He has been a member of the faculty at Notre Dame since 2014. His research interests gravitate around the fields of Greek Patristic, Byzantine, and Orthodox Theology, with a special focus on the areas of Christology, theological anthropology, ascetic thought, and East-West relations. He is currently developing a project on the nature and practice of theology in the middle and late Byzantine periods, with a view to bringing the findings into conversation with modern Orthodox thought. He was ordained to the priesthood in the Patriarchate of Constantinople in 2020, and is a Protopresbyter of the Ecumenical Throne.",
     "thumbnailUrl": "https://i.ytimg.com/vi/wSnrAXeGgek/mqdefault.jpg",
     "videoCount": 5,
     "publishedAt": "2024-11-20T21:00:28.339836Z"
@@ -51,7 +75,7 @@
     "id": "PLuPBy_6R3BLaXjoPlhxAzhs-L8GBD8s3Z",
     "title": "Conference",
     "description": "",
-    "thumbnailUrl": "https://i.ytimg.com/vi/b-Xfw6ZDfS4/mqdefault.jpg",
+    "thumbnailUrl": "https://i.ytimg.com/vi/IVddvnlDO0o/mqdefault.jpg",
     "videoCount": 5,
     "publishedAt": "2023-02-12T04:36:55.650942Z"
   },

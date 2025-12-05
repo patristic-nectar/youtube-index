@@ -11,7 +11,7 @@
   <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
       <h2>Patristic Nectar Videos</h2>
-      <p class="pn-subtitle" x-text="`${totalVideos} videos in ${playlistsWithVideos.length} playlists`"></p>
+      <p class="pn-subtitle" x-text="`${totalVideos} videos in ${playlists.length} playlists`"></p>
       <p x-show="lastUpdated" class="pn-last-updated" x-text="`Last updated: ${formatDate(lastUpdated)}`"></p>
     </div>
 
@@ -73,98 +73,110 @@
       <p>No videos found matching your search.</p>
     </div>
 
-    <!-- List View (Playlist-based) -->
+    <!-- List View (Playlist-based with Categories) -->
     <div x-show="layoutMode === 'list' && playlistsWithVideos.length > 0" class="pn-playlists">
-      <template x-for="group in playlistsWithVideos" :key="group.playlist.id">
-        <div class="pn-playlist-section">
-          <div
-            class="pn-playlist-header"
-            @click="togglePlaylist(group.playlist.id)"
-            :class="{ 'pn-collapsed': group.isCollapsed }"
-          >
-            <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div class="pn-playlist-info">
-              <div class="pn-playlist-title-group">
-                <h3>
-                  <span x-text="group.playlist.title"></span>
-                  <span class="pn-video-count" x-text="`(${group.videos.length} videos)`"></span>
-                </h3>
-                <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
-              </div>
-            </div>
-          </div>
+      <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
+        <div class="pn-category-group">
+          <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
 
-          <div x-show="!group.isCollapsed" class="pn-video-list">
-            <template x-for="video in group.videos" :key="video.id">
-              <div class="pn-video-item">
-                <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
-                  <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
-                  <span class="pn-duration" x-text="video.durationFormatted"></span>
-                </a>
-                <div class="pn-video-details">
-                  <h4 class="pn-video-title">
-                    <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                  </h4>
-                  <p class="pn-video-meta">
-                    <span x-text="formatDate(video.publishedAt)"></span>
-                    <span> • </span>
-                    <span x-text="formatViews(video.viewCount)"></span> views
-                  </p>
+          <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
+            <div class="pn-playlist-section">
+              <div
+                class="pn-playlist-header"
+                @click="togglePlaylist(group.playlist.id)"
+                :class="{ 'pn-collapsed': group.isCollapsed }"
+              >
+                <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="pn-playlist-info">
+                  <div class="pn-playlist-title-group">
+                    <h3>
+                      <span x-text="group.playlist.displayName"></span>
+                      <span class="pn-video-count" x-text="` (${group.videos.length} videos)`"></span>
+                    </h3>
+                    <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+                  </div>
                 </div>
               </div>
-            </template>
-          </div>
+
+              <div x-show="!group.isCollapsed" class="pn-video-list">
+                <template x-for="video in group.videos" :key="video.id">
+                  <div class="pn-video-item">
+                    <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
+                      <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
+                      <span class="pn-duration" x-text="video.durationFormatted"></span>
+                    </a>
+                    <div class="pn-video-details">
+                      <h4 class="pn-video-title">
+                        <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+                      </h4>
+                      <p class="pn-video-meta">
+                        <span x-text="formatDate(video.publishedAt)"></span>
+                        <span> • </span>
+                        <span x-text="formatViews(video.viewCount)"></span> views
+                      </p>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
         </div>
       </template>
     </div>
 
-    <!-- Grid View (Playlist-based) -->
+    <!-- Grid View (Playlist-based with Categories) -->
     <div x-show="layoutMode === 'grid' && playlistsWithVideos.length > 0" class="pn-playlists">
-      <template x-for="group in playlistsWithVideos" :key="group.playlist.id">
-        <div class="pn-playlist-section">
-          <div
-            class="pn-playlist-header"
-            @click="togglePlaylist(group.playlist.id)"
-            :class="{ 'pn-collapsed': group.isCollapsed }"
-          >
-            <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div class="pn-playlist-info">
-              <div class="pn-playlist-title-group">
-                <h3>
-                  <span x-text="group.playlist.title"></span>
-                  <span class="pn-video-count" x-text="`(${group.videos.length} videos)`"></span>
-                </h3>
-                <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
-              </div>
-            </div>
-          </div>
+      <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
+        <div class="pn-category-group">
+          <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
 
-          <div x-show="!group.isCollapsed" class="pn-video-grid-container">
-            <div class="pn-video-grid">
-              <template x-for="video in group.videos" :key="video.id">
-                <div class="pn-video-card">
-                  <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
-                    <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
-                    <span class="pn-duration" x-text="video.durationFormatted"></span>
-                  </a>
-                  <div class="pn-video-info">
-                    <h3 class="pn-video-title">
-                      <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+          <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
+            <div class="pn-playlist-section">
+              <div
+                class="pn-playlist-header"
+                @click="togglePlaylist(group.playlist.id)"
+                :class="{ 'pn-collapsed': group.isCollapsed }"
+              >
+                <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="pn-playlist-info">
+                  <div class="pn-playlist-title-group">
+                    <h3>
+                      <span x-text="group.playlist.displayName"></span>
+                      <span class="pn-video-count" x-text="` (${group.videos.length} videos)`"></span>
                     </h3>
-                    <p class="pn-video-meta">
-                      <span x-text="formatDate(video.publishedAt)"></span>
-                      <span> • </span>
-                      <span x-text="formatViews(video.viewCount)"></span> views
-                    </p>
+                    <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
                   </div>
                 </div>
-              </template>
+              </div>
+
+              <div x-show="!group.isCollapsed" class="pn-video-grid-container">
+                <div class="pn-video-grid">
+                  <template x-for="video in group.videos" :key="video.id">
+                    <div class="pn-video-card">
+                      <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
+                        <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
+                        <span class="pn-duration" x-text="video.durationFormatted"></span>
+                      </a>
+                      <div class="pn-video-info">
+                        <h3 class="pn-video-title">
+                          <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+                        </h3>
+                        <p class="pn-video-meta">
+                          <span x-text="formatDate(video.publishedAt)"></span>
+                          <span> • </span>
+                          <span x-text="formatViews(video.viewCount)"></span> views
+                        </p>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
             </div>
-          </div>
+          </template>
         </div>
       </template>
     </div>

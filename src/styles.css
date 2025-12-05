@@ -256,11 +256,26 @@
   gap: var(--pn-space-md);
 }
 
+/* Category grouping */
+.pn-category-group {
+  margin-bottom: var(--pn-space-xl);
+}
+
+.pn-category-header {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--pn-text);
+  margin: 0 0 var(--pn-space-md);
+  padding-bottom: var(--pn-space-sm);
+  border-bottom: 2px solid var(--pn-primary);
+}
+
 .pn-playlist-section {
   background: var(--pn-bg);
   border: 1px solid var(--pn-border);
   border-radius: var(--pn-radius);
   overflow: hidden;
+  margin-bottom: var(--pn-space-md);
 }
 
 .pn-playlist-header {
@@ -289,6 +304,7 @@
 
 .pn-playlist-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: baseline;
   gap: var(--pn-space-md);
@@ -299,6 +315,9 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .pn-playlist-info h3 {
@@ -312,7 +331,7 @@
   font-size: 0.875rem;
   font-weight: 400;
   color: var(--pn-text-secondary);
-  margin-left: 0.5rem;
+  white-space: nowrap;
 }
 
 .pn-playlist-description {
@@ -320,6 +339,10 @@
   font-size: 0.875rem;
   color: var(--pn-text-secondary);
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* Video List */
@@ -550,6 +573,10 @@
     flex-direction: column;
     align-items: flex-start;
     gap: var(--pn-space-xs);
+  }
+
+  .pn-playlist-title-group {
+    width: 100%;
   }
 
   .pn-video-grid {
