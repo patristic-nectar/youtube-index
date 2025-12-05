@@ -31,22 +31,28 @@ function patristicNectarWidget() {
     get playlistsWithVideos() {
       const categoryGroups = {};
 
+      // Create a map for O(1) video lookups
+      const videoMap = new Map(this.videos.map(v => [v.id, v]));
+
       // Parse playlists and group by category
       for (const playlist of this.playlists) {
-        let playlistVideos = this.videos.filter(v =>
-          v.playlistIds.includes(playlist.id)
-        );
+        // Skip if filtering by playlist and this isn't the selected one
+        if (this.selectedPlaylist && this.selectedPlaylist !== playlist.id) {
+          continue;
+        }
 
+        // Get videos for this playlist
+        let playlistVideos = (playlist.videoIds || [])
+          .map(id => videoMap.get(id))
+          .filter(v => v !== undefined);
+
+        // Apply search filter
         if (this.searchQuery) {
           const query = this.searchQuery.toLowerCase();
           playlistVideos = playlistVideos.filter(v =>
             v.title.toLowerCase().includes(query) ||
             v.description.toLowerCase().includes(query)
           );
-        }
-
-        if (this.selectedPlaylist && this.selectedPlaylist !== playlist.id) {
-          continue;
         }
 
         playlistVideos = this.sortVideos(playlistVideos);
@@ -120,9 +126,13 @@ function patristicNectarWidget() {
       }
 
       if (this.selectedPlaylist) {
-        filtered = filtered.filter(v =>
-          v.playlistIds.includes(this.selectedPlaylist)
-        );
+        const playlist = this.playlists.find(p => p.id === this.selectedPlaylist);
+        if (playlist && playlist.videoIds) {
+          const videoIdSet = new Set(playlist.videoIds);
+          filtered = filtered.filter(v => videoIdSet.has(v.id));
+        } else {
+          filtered = [];
+        }
       }
 
       return this.sortVideos(filtered);
