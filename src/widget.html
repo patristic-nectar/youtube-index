@@ -11,7 +11,7 @@
   <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
       <h2>Patristic Nectar Videos</h2>
-      <p class="pn-subtitle" x-text="`${totalVideos} videos in ${playlists.length} playlists`"></p>
+      <p class="pn-subtitle" x-text="hasActiveFilters ? `Showing ${totalVideos} of ${totalUnfilteredVideos} videos in ${playlists.length} playlists` : `${totalUnfilteredVideos} videos in ${playlists.length} playlists`"></p>
       <p x-show="lastUpdated" class="pn-last-updated" x-text="`Last updated: ${formatDate(lastUpdated)}`"></p>
     </div>
 
