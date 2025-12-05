@@ -3750,6 +3750,22 @@ function applySquarespaceColors() {
       return result;
     },
 
+    get totalUnfilteredVideos() {
+      // Count unique videos across all playlists without any filters
+      const uniqueVideoIds = new Set();
+      const videoMap = new Map(this.videos.map(v => [v.id, v]));
+
+      for (const playlist of this.playlists) {
+        (playlist.videoIds || []).forEach(id => {
+          if (videoMap.has(id)) {
+            uniqueVideoIds.add(id);
+          }
+        });
+      }
+
+      return uniqueVideoIds.size;
+    },
+
     get totalVideos() {
       const uniqueVideoIds = new Set();
       this.playlistsWithVideos.forEach(categoryGroup => {
@@ -3759,7 +3775,12 @@ function applySquarespaceColors() {
           });
         });
       });
-      return uniqueVideoIds.size;
+      // Ensure filtered count never exceeds total count
+      return Math.min(uniqueVideoIds.size, this.totalUnfilteredVideos);
+    },
+
+    get hasActiveFilters() {
+      return this.searchQuery.trim() !== '' || this.selectedPlaylist !== '';
     },
 
     get allFilteredVideos() {
@@ -3932,7 +3953,7 @@ window.patristicNectarWidget = patristicNectarWidget;
   <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
       <h2>Patristic Nectar Videos</h2>
-      <p class="pn-subtitle" x-text="\`\${totalVideos} videos in \${playlists.length} playlists\`"></p>
+      <p class="pn-subtitle" x-text="hasActiveFilters ? \`Showing \${totalVideos} of \${totalUnfilteredVideos} videos in \${playlists.length} playlists\` : \`\${totalUnfilteredVideos} videos in \${playlists.length} playlists\`"></p>
       <p x-show="lastUpdated" class="pn-last-updated" x-text="\`Last updated: \${formatDate(lastUpdated)}\`"></p>
     </div>
 
@@ -4158,7 +4179,7 @@ window.patristicNectarWidget = patristicNectarWidget;
   <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
       <h2>Patristic Nectar Videos</h2>
-      <p class="pn-subtitle" x-text="\`\${totalVideos} videos in \${playlists.length} playlists\`"></p>
+      <p class="pn-subtitle" x-text="hasActiveFilters ? \`Showing \${totalVideos} of \${totalUnfilteredVideos} videos in \${playlists.length} playlists\` : \`\${totalUnfilteredVideos} videos in \${playlists.length} playlists\`"></p>
       <p x-show="lastUpdated" class="pn-last-updated" x-text="\`Last updated: \${formatDate(lastUpdated)}\`"></p>
     </div>
 

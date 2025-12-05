@@ -84,6 +84,22 @@ function patristicNectarWidget() {
       return result;
     },
 
+    get totalUnfilteredVideos() {
+      // Count unique videos across all playlists without any filters
+      const uniqueVideoIds = new Set();
+      const videoMap = new Map(this.videos.map(v => [v.id, v]));
+
+      for (const playlist of this.playlists) {
+        (playlist.videoIds || []).forEach(id => {
+          if (videoMap.has(id)) {
+            uniqueVideoIds.add(id);
+          }
+        });
+      }
+
+      return uniqueVideoIds.size;
+    },
+
     get totalVideos() {
       const uniqueVideoIds = new Set();
       this.playlistsWithVideos.forEach(categoryGroup => {
@@ -93,7 +109,12 @@ function patristicNectarWidget() {
           });
         });
       });
-      return uniqueVideoIds.size;
+      // Ensure filtered count never exceeds total count
+      return Math.min(uniqueVideoIds.size, this.totalUnfilteredVideos);
+    },
+
+    get hasActiveFilters() {
+      return this.searchQuery.trim() !== '' || this.selectedPlaylist !== '';
     },
 
     get allFilteredVideos() {
