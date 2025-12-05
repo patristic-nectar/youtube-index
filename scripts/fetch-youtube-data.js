@@ -56,14 +56,28 @@ class YouTubeAPI {
       const data = await this.fetchWithErrorHandling(url);
 
       if (data.items) {
-        playlists.push(...data.items.map(item => ({
-          id: item.id,
-          title: item.snippet.title,
-          description: item.snippet.description,
-          thumbnailUrl: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
-          videoCount: item.contentDetails.itemCount,
-          publishedAt: item.snippet.publishedAt
-        })));
+        playlists.push(...data.items.map(item => {
+          let description = item.snippet.description || '';
+          let category = 'Other';
+
+          // Extract category from description (format: " [CategoryName]" at the end)
+          const categoryMatch = description.match(/\s*\[([^\]]+)\]\s*$/);
+          if (categoryMatch) {
+            category = categoryMatch[1].trim();
+            // Remove the category marker from the description
+            description = description.replace(/\s*\[([^\]]+)\]\s*$/, '').trim();
+          }
+
+          return {
+            id: item.id,
+            title: item.snippet.title,
+            description: description,
+            category: category,
+            thumbnailUrl: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
+            videoCount: item.contentDetails.itemCount,
+            publishedAt: item.snippet.publishedAt
+          };
+        }));
       }
 
       nextPageToken = data.nextPageToken || '';
@@ -207,11 +221,16 @@ class YouTubeAPI {
     // Create a set of valid video IDs for filtering
     const validVideoIds = new Set(validVideos.map(v => v.id));
 
-    // Add videoIds array to each playlist (only valid videos)
-    const playlistsWithVideos = playlists.map(playlist => ({
-      ...playlist,
-      videoIds: (playlistToVideos.get(playlist.id) || []).filter(id => validVideoIds.has(id))
-    }));
+    // Add videoIds array to each playlist (only valid videos, deduplicated)
+    const playlistsWithVideos = playlists.map(playlist => {
+      const videoIds = playlistToVideos.get(playlist.id) || [];
+      // Deduplicate video IDs within each playlist
+      const uniqueVideoIds = [...new Set(videoIds)].filter(id => validVideoIds.has(id));
+      return {
+        ...playlist,
+        videoIds: uniqueVideoIds
+      };
+    });
 
     return {
       playlists: playlistsWithVideos,

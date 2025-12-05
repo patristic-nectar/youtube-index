@@ -3679,21 +3679,6 @@ function applySquarespaceColors() {
     currentPage: 1,
     itemsPerPage: WIDGET_CONFIG.DEFAULT_ITEMS_PER_PAGE,
 
-    // Extract category from playlist title (e.g., "Name - Category" -> {name: "Name", category: "Category"})
-    parsePlaylistTitle(title) {
-      const match = title.match(/^(.+?)\s*-\s*([^-]+)$/);
-      if (match) {
-        return {
-          displayName: match[1].trim(),
-          category: match[2].trim()
-        };
-      }
-      return {
-        displayName: title,
-        category: 'Other'
-      };
-    },
-
     get playlistsWithVideos() {
       const categoryGroups = {};
 
@@ -3724,27 +3709,24 @@ function applySquarespaceColors() {
         playlistVideos = this.sortVideos(playlistVideos);
 
         if (playlistVideos.length > 0) {
-          const { displayName, category } = this.parsePlaylistTitle(playlist.title);
+          const category = playlist.category || 'Other';
 
           if (!categoryGroups[category]) {
             categoryGroups[category] = [];
           }
 
           categoryGroups[category].push({
-            playlist: {
-              ...playlist,
-              displayName: displayName
-            },
+            playlist: playlist,
             videos: playlistVideos,
-            isCollapsed: this.collapsedPlaylists[playlist.id] !== false
+            isCollapsed: this.collapsedPlaylists[playlist.id] === true
           });
         }
       }
 
-      // Sort playlists within each category alphabetically by display name
+      // Sort playlists within each category alphabetically by title
       Object.keys(categoryGroups).forEach(category => {
         categoryGroups[category].sort((a, b) =>
-          a.playlist.displayName.localeCompare(b.playlist.displayName)
+          a.playlist.title.localeCompare(b.playlist.title)
         );
       });
 
@@ -4031,7 +4013,7 @@ window.patristicNectarWidget = patristicNectarWidget;
                 <div class="pn-playlist-info">
                   <div class="pn-playlist-title-group">
                     <h3>
-                      <span x-text="group.playlist.displayName"></span>
+                      <span x-text="group.playlist.title"></span>
                       <span class="pn-video-count" x-text="\` (\${group.videos.length} videos)\`"></span>
                     </h3>
                     <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
@@ -4096,7 +4078,7 @@ window.patristicNectarWidget = patristicNectarWidget;
                 <div class="pn-playlist-info">
                   <div class="pn-playlist-title-group">
                     <h3>
-                      <span x-text="group.playlist.displayName"></span>
+                      <span x-text="group.playlist.title"></span>
                       <span class="pn-video-count" x-text="\` (\${group.videos.length} videos)\`"></span>
                     </h3>
                     <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
@@ -4257,7 +4239,7 @@ window.patristicNectarWidget = patristicNectarWidget;
                 <div class="pn-playlist-info">
                   <div class="pn-playlist-title-group">
                     <h3>
-                      <span x-text="group.playlist.displayName"></span>
+                      <span x-text="group.playlist.title"></span>
                       <span class="pn-video-count" x-text="\` (\${group.videos.length} videos)\`"></span>
                     </h3>
                     <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
@@ -4322,7 +4304,7 @@ window.patristicNectarWidget = patristicNectarWidget;
                 <div class="pn-playlist-info">
                   <div class="pn-playlist-title-group">
                     <h3>
-                      <span x-text="group.playlist.displayName"></span>
+                      <span x-text="group.playlist.title"></span>
                       <span class="pn-video-count" x-text="\` (\${group.videos.length} videos)\`"></span>
                     </h3>
                     <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
