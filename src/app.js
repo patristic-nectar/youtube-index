@@ -13,15 +13,26 @@ function patristicNectarWidget() {
     currentPage: 1,
     itemsPerPage: WIDGET_CONFIG.DEFAULT_ITEMS_PER_PAGE,
 
+    // Extract category from playlist title (e.g., "Name - Category" -> {name: "Name", category: "Category"})
+    parsePlaylistTitle(title) {
+      const match = title.match(/^(.+?)\s*-\s*([^-]+)$/);
+      if (match) {
+        return {
+          displayName: match[1].trim(),
+          category: match[2].trim()
+        };
+      }
+      return {
+        displayName: title,
+        category: 'Other'
+      };
+    },
+
     get playlistsWithVideos() {
-      const playlistGroups = [];
+      const categoryGroups = {};
 
-      // Sort playlists alphabetically by title
-      const sortedPlaylists = [...this.playlists].sort((a, b) =>
-        a.title.localeCompare(b.title)
-      );
-
-      for (const playlist of sortedPlaylists) {
+      // Parse playlists and group by category
+      for (const playlist of this.playlists) {
         let playlistVideos = this.videos.filter(v =>
           v.playlistIds.includes(playlist.id)
         );
@@ -41,22 +52,57 @@ function patristicNectarWidget() {
         playlistVideos = this.sortVideos(playlistVideos);
 
         if (playlistVideos.length > 0) {
-          playlistGroups.push({
-            playlist: playlist,
+          const { displayName, category } = this.parsePlaylistTitle(playlist.title);
+
+          if (!categoryGroups[category]) {
+            categoryGroups[category] = [];
+          }
+
+          categoryGroups[category].push({
+            playlist: {
+              ...playlist,
+              displayName: displayName
+            },
             videos: playlistVideos,
             isCollapsed: this.collapsedPlaylists[playlist.id] !== false
           });
         }
       }
 
-      return playlistGroups;
+      // Sort playlists within each category alphabetically by display name
+      Object.keys(categoryGroups).forEach(category => {
+        categoryGroups[category].sort((a, b) =>
+          a.playlist.displayName.localeCompare(b.playlist.displayName)
+        );
+      });
+
+      // Convert to array format with category headers
+      const result = [];
+      const sortedCategories = Object.keys(categoryGroups).sort((a, b) => {
+        // Always show "Other" last
+        if (a === 'Other') return 1;
+        if (b === 'Other') return -1;
+        return a.localeCompare(b);
+      });
+
+      for (const category of sortedCategories) {
+        result.push({
+          isCategory: true,
+          categoryName: category,
+          playlists: categoryGroups[category]
+        });
+      }
+
+      return result;
     },
 
     get totalVideos() {
       const uniqueVideoIds = new Set();
-      this.playlistsWithVideos.forEach(group => {
-        group.videos.forEach(video => {
-          uniqueVideoIds.add(video.id);
+      this.playlistsWithVideos.forEach(categoryGroup => {
+        categoryGroup.playlists.forEach(playlistGroup => {
+          playlistGroup.videos.forEach(video => {
+            uniqueVideoIds.add(video.id);
+          });
         });
       });
       return uniqueVideoIds.size;
