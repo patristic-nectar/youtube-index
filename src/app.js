@@ -84,6 +84,10 @@ function patristicNectarWidget() {
       return result;
     },
 
+    get sortedPlaylists() {
+      return [...this.playlists].sort((a, b) => a.title.localeCompare(b.title));
+    },
+
     get totalUnfilteredVideos() {
       // Count unique videos across all playlists without any filters
       const uniqueVideoIds = new Set();
