@@ -233,6 +233,8 @@ function patristicNectarWidget() {
           return sorted.sort((a, b) => b.title.localeCompare(a.title));
         case 'views-desc':
           return sorted.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+        case 'likes-desc':
+          return sorted.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
         case 'duration-desc':
           return sorted.sort((a, b) => this.parseDuration(b.duration) - this.parseDuration(a.duration));
         case 'duration-asc':
