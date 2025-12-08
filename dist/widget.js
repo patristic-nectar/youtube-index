@@ -3672,6 +3672,8 @@ function applySquarespaceColors() {
     videos: [],
     lastUpdated: null,
     searchQuery: '',
+    searchQueryInput: '',
+    searchDebounceTimer: null,
     selectedPlaylist: '',
     sortBy: WIDGET_CONFIG.DEFAULT_SORT,
     collapsedPlaylists: {},
@@ -3697,12 +3699,11 @@ function applySquarespaceColors() {
           .map(id => videoMap.get(id))
           .filter(v => v !== undefined);
 
-        // Apply search filter
+        // Apply search filter (using pre-normalized lowercase fields)
         if (this.searchQuery) {
-          const query = this.searchQuery.toLowerCase();
           playlistVideos = playlistVideos.filter(v =>
-            v.title.toLowerCase().includes(query) ||
-            v.description.toLowerCase().includes(query)
+            v.titleLowercase.includes(this.searchQuery) ||
+            v.descriptionLowercase.includes(this.searchQuery)
           );
         }
 
@@ -3791,10 +3792,9 @@ function applySquarespaceColors() {
       let filtered = this.videos;
 
       if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase();
         filtered = filtered.filter(v =>
-          v.title.toLowerCase().includes(query) ||
-          v.description.toLowerCase().includes(query)
+          v.titleLowercase.includes(this.searchQuery) ||
+          v.descriptionLowercase.includes(this.searchQuery)
         );
       }
 
@@ -3824,7 +3824,15 @@ function applySquarespaceColors() {
     async init() {
       await this.loadData();
 
-      this.$watch('searchQuery', () => { this.currentPage = 1; });
+      // Debounce search input (300ms delay)
+      this.$watch('searchQueryInput', (newValue) => {
+        clearTimeout(this.searchDebounceTimer);
+        this.searchDebounceTimer = setTimeout(() => {
+          this.searchQuery = newValue.toLowerCase();
+          this.currentPage = 1;
+        }, 300);
+      });
+
       this.$watch('selectedPlaylist', () => { this.currentPage = 1; });
       this.$watch('sortBy', () => { this.currentPage = 1; });
     },
@@ -3854,6 +3862,13 @@ function applySquarespaceColors() {
 
         this.playlists = await playlistsRes.json();
         this.videos = await videosRes.json();
+
+        // Pre-normalize video data for faster searching
+        this.videos = this.videos.map(v => ({
+          ...v,
+          titleLowercase: v.title.toLowerCase(),
+          descriptionLowercase: (v.description || '').toLowerCase()
+        }));
 
         // Load metadata (optional, won't fail if missing)
         if (metadataRes.ok) {
@@ -3966,7 +3981,7 @@ window.patristicNectarWidget = patristicNectarWidget;
     <div class="pn-controls">
       <input
         type="search"
-        x-model="searchQuery"
+        x-model="searchQueryInput"
         placeholder="Search videos..."
         class="pn-search pn-input"
       >
@@ -4193,7 +4208,7 @@ window.patristicNectarWidget = patristicNectarWidget;
     <div class="pn-controls">
       <input
         type="search"
-        x-model="searchQuery"
+        x-model="searchQueryInput"
         placeholder="Search videos..."
         class="pn-search pn-input"
       >

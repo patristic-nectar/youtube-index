@@ -6,6 +6,8 @@ function patristicNectarWidget() {
     videos: [],
     lastUpdated: null,
     searchQuery: '',
+    searchQueryInput: '',
+    searchDebounceTimer: null,
     selectedPlaylist: '',
     sortBy: WIDGET_CONFIG.DEFAULT_SORT,
     collapsedPlaylists: {},
@@ -31,12 +33,10 @@ function patristicNectarWidget() {
           .map(id => videoMap.get(id))
           .filter(v => v !== undefined);
 
-        // Apply search filter
         if (this.searchQuery) {
-          const query = this.searchQuery.toLowerCase();
           playlistVideos = playlistVideos.filter(v =>
-            v.title.toLowerCase().includes(query) ||
-            v.description.toLowerCase().includes(query)
+            v.titleLowercase.includes(this.searchQuery) ||
+            v.descriptionLowercase.includes(this.searchQuery)
           );
         }
 
@@ -125,10 +125,9 @@ function patristicNectarWidget() {
       let filtered = this.videos;
 
       if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase();
         filtered = filtered.filter(v =>
-          v.title.toLowerCase().includes(query) ||
-          v.description.toLowerCase().includes(query)
+          v.titleLowercase.includes(this.searchQuery) ||
+          v.descriptionLowercase.includes(this.searchQuery)
         );
       }
 
@@ -158,7 +157,15 @@ function patristicNectarWidget() {
     async init() {
       await this.loadData();
 
-      this.$watch('searchQuery', () => { this.currentPage = 1; });
+      // Debounce search input (300ms delay)
+      this.$watch('searchQueryInput', (newValue) => {
+        clearTimeout(this.searchDebounceTimer);
+        this.searchDebounceTimer = setTimeout(() => {
+          this.searchQuery = newValue.toLowerCase();
+          this.currentPage = 1;
+        }, 300);
+      });
+
       this.$watch('selectedPlaylist', () => { this.currentPage = 1; });
       this.$watch('sortBy', () => { this.currentPage = 1; });
     },
@@ -188,6 +195,13 @@ function patristicNectarWidget() {
 
         this.playlists = await playlistsRes.json();
         this.videos = await videosRes.json();
+
+        // Pre-normalize video data for faster searching
+        this.videos = this.videos.map(v => ({
+          ...v,
+          titleLowercase: v.title.toLowerCase(),
+          descriptionLowercase: (v.description || '').toLowerCase()
+        }));
 
         // Load metadata (optional, won't fail if missing)
         if (metadataRes.ok) {
