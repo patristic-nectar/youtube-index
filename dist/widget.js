@@ -3670,6 +3670,7 @@ function applySquarespaceColors() {
     error: null,
     playlists: [],
     videos: [],
+    videoMap: null,
     lastUpdated: null,
     searchQuery: '',
     searchQueryInput: '',
@@ -3684,9 +3685,6 @@ function applySquarespaceColors() {
     get playlistsWithVideos() {
       const categoryGroups = {};
 
-      // Create a map for O(1) video lookups
-      const videoMap = new Map(this.videos.map(v => [v.id, v]));
-
       // Parse playlists and group by category
       for (const playlist of this.playlists) {
         // Skip if filtering by playlist and this isn't the selected one
@@ -3696,10 +3694,9 @@ function applySquarespaceColors() {
 
         // Get videos for this playlist
         let playlistVideos = (playlist.videoIds || [])
-          .map(id => videoMap.get(id))
+          .map(id => this.videoMap.get(id))
           .filter(v => v !== undefined);
 
-        // Apply search filter (using pre-normalized lowercase fields)
         if (this.searchQuery) {
           playlistVideos = playlistVideos.filter(v =>
             v.titleLowercase.includes(this.searchQuery) ||
@@ -3758,11 +3755,10 @@ function applySquarespaceColors() {
     get totalUnfilteredVideos() {
       // Count unique videos across all playlists without any filters
       const uniqueVideoIds = new Set();
-      const videoMap = new Map(this.videos.map(v => [v.id, v]));
 
       for (const playlist of this.playlists) {
         (playlist.videoIds || []).forEach(id => {
-          if (videoMap.has(id)) {
+          if (this.videoMap.has(id)) {
             uniqueVideoIds.add(id);
           }
         });
@@ -3869,6 +3865,9 @@ function applySquarespaceColors() {
           titleLowercase: v.title.toLowerCase(),
           descriptionLowercase: (v.description || '').toLowerCase()
         }));
+
+        // Build video map for O(1) lookups (done once during load)
+        this.videoMap = new Map(this.videos.map(v => [v.id, v]));
 
         // Load metadata (optional, won't fail if missing)
         if (metadataRes.ok) {
