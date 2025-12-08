@@ -25,7 +25,7 @@
 
       <select x-model="selectedPlaylist" class="pn-select">
         <option value="">All Playlists</option>
-        <template x-for="playlist in playlists" :key="playlist.id">
+        <template x-for="playlist in sortedPlaylists" :key="playlist.id">
           <option :value="playlist.id" x-text="playlist.title"></option>
         </template>
       </select>

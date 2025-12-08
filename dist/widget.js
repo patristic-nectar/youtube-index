@@ -3750,6 +3750,10 @@ function applySquarespaceColors() {
       return result;
     },
 
+    get sortedPlaylists() {
+      return [...this.playlists].sort((a, b) => a.title.localeCompare(b.title));
+    },
+
     get totalUnfilteredVideos() {
       // Count unique videos across all playlists without any filters
       const uniqueVideoIds = new Set();
@@ -3969,7 +3973,7 @@ window.patristicNectarWidget = patristicNectarWidget;
 
       <select x-model="selectedPlaylist" class="pn-select">
         <option value="">All Playlists</option>
-        <template x-for="playlist in playlists" :key="playlist.id">
+        <template x-for="playlist in sortedPlaylists" :key="playlist.id">
           <option :value="playlist.id" x-text="playlist.title"></option>
         </template>
       </select>
@@ -4196,7 +4200,7 @@ window.patristicNectarWidget = patristicNectarWidget;
 
       <select x-model="selectedPlaylist" class="pn-select">
         <option value="">All Playlists</option>
-        <template x-for="playlist in playlists" :key="playlist.id">
+        <template x-for="playlist in sortedPlaylists" :key="playlist.id">
           <option :value="playlist.id" x-text="playlist.title"></option>
         </template>
       </select>
