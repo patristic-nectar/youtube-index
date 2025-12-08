@@ -3899,6 +3899,8 @@ function applySquarespaceColors() {
           return sorted.sort((a, b) => b.title.localeCompare(a.title));
         case 'views-desc':
           return sorted.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+        case 'likes-desc':
+          return sorted.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
         case 'duration-desc':
           return sorted.sort((a, b) => this.parseDuration(b.duration) - this.parseDuration(a.duration));
         case 'duration-asc':
@@ -3978,6 +3980,7 @@ window.patristicNectarWidget = patristicNectarWidget;
         <option value="title-asc">Title A-Z</option>
         <option value="title-desc">Title Z-A</option>
         <option value="views-desc">Most Views</option>
+        <option value="likes-desc">Most Liked</option>
         <option value="duration-desc">Longest First</option>
         <option value="duration-asc">Shortest First</option>
       </select>
@@ -4204,6 +4207,7 @@ window.patristicNectarWidget = patristicNectarWidget;
         <option value="title-asc">Title A-Z</option>
         <option value="title-desc">Title Z-A</option>
         <option value="views-desc">Most Views</option>
+        <option value="likes-desc">Most Liked</option>
         <option value="duration-desc">Longest First</option>
         <option value="duration-asc">Shortest First</option>
       </select>

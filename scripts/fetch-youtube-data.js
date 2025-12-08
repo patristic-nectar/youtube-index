@@ -152,7 +152,8 @@ class YouTubeAPI {
           id: item.id,
           duration: item.contentDetails.duration,
           durationFormatted: this.formatDuration(item.contentDetails.duration),
-          viewCount: parseInt(item.statistics.viewCount) || 0
+          viewCount: parseInt(item.statistics.viewCount) || 0,
+          likeCount: parseInt(item.statistics.likeCount) || 0
         })));
       }
     }
@@ -215,7 +216,8 @@ class YouTubeAPI {
         ...video,
         duration: detailsMap.get(video.id).duration,
         durationFormatted: detailsMap.get(video.id).durationFormatted,
-        viewCount: detailsMap.get(video.id).viewCount
+        viewCount: detailsMap.get(video.id).viewCount,
+        likeCount: detailsMap.get(video.id).likeCount
       }));
 
     // Create a set of valid video IDs for filtering
