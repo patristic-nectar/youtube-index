@@ -46,6 +46,16 @@ class YouTubeAPI {
     return response.json();
   }
 
+  async getUploadsPlaylistId() {
+    const url = `${this.baseUrl}/channels?part=contentDetails&id=${this.channelId}&key=${this.apiKey}`;
+    const data = await this.fetchWithErrorHandling(url);
+
+    if (data.items && data.items[0]) {
+      return data.items[0].contentDetails.relatedPlaylists.uploads;
+    }
+    throw new Error('Could not find uploads playlist for channel');
+  }
+
   async getPlaylists() {
     const playlists = [];
     let nextPageToken = '';
@@ -181,14 +191,16 @@ class YouTubeAPI {
 
     const videoMap = new Map();
     const playlistToVideos = new Map();
+    const videosInExplicitPlaylists = new Set();
 
-    // Fetch videos for each playlist and build relationships
+    // Fetch videos for each user-created playlist and build relationships
     for (const playlist of playlists) {
       const playlistVideos = await this.getPlaylistVideos(playlist.id);
       const videoIds = [];
 
       for (const video of playlistVideos) {
         videoIds.push(video.id);
+        videosInExplicitPlaylists.add(video.id);
 
         if (!videoMap.has(video.id)) {
           videoMap.set(video.id, {
@@ -201,6 +213,25 @@ class YouTubeAPI {
       playlistToVideos.set(playlist.id, videoIds);
     }
 
+    // Fetch all videos from channel uploads playlist to include videos not in explicit playlists
+    const uploadsPlaylistId = await this.getUploadsPlaylistId();
+    const allChannelVideos = await this.getPlaylistVideos(uploadsPlaylistId);
+
+    // Add channel videos to videoMap (skip if already in a playlist)
+    const uncategorizedVideoIds = [];
+    for (const video of allChannelVideos) {
+      if (!videoMap.has(video.id)) {
+        videoMap.set(video.id, {
+          ...video,
+          videoUrl: `https://www.youtube.com/watch?v=${video.id}`
+        });
+        uncategorizedVideoIds.push(video.id);
+      } else if (!videosInExplicitPlaylists.has(video.id)) {
+        // Video exists but isn't in any explicit playlist
+        uncategorizedVideoIds.push(video.id);
+      }
+    }
+
     // Get all unique videos
     const uniqueVideos = Array.from(videoMap.values());
 
@@ -209,7 +240,7 @@ class YouTubeAPI {
     const videoDetails = await this.getVideoDetails(videoIds);
     const detailsMap = new Map(videoDetails.map(d => [d.id, d]));
 
-    // Filter out videos that don't have details (likely private/deleted)
+    // Filter out videos that don't have details (likely private/deleted/unlisted)
     const validVideos = uniqueVideos
       .filter(video => detailsMap.has(video.id))
       .map(video => ({
@@ -223,6 +254,9 @@ class YouTubeAPI {
     // Create a set of valid video IDs for filtering
     const validVideoIds = new Set(validVideos.map(v => v.id));
 
+    // Filter uncategorized videos to only include valid ones
+    const validUncategorizedIds = uncategorizedVideoIds.filter(id => validVideoIds.has(id));
+
     // Add videoIds array to each playlist (only valid videos, deduplicated)
     const playlistsWithVideos = playlists.map(playlist => {
       const videoIds = playlistToVideos.get(playlist.id) || [];
@@ -233,6 +267,20 @@ class YouTubeAPI {
         videoIds: uniqueVideoIds
       };
     });
+
+    // Add "Uncategorized" playlist if there are videos not in any explicit playlist
+    if (validUncategorizedIds.length > 0) {
+      playlistsWithVideos.push({
+        id: 'uncategorized',
+        title: 'Uncategorized',
+        description: 'Videos not in any playlist',
+        category: 'Other',
+        thumbnailUrl: '',
+        videoCount: validUncategorizedIds.length,
+        publishedAt: new Date().toISOString(),
+        videoIds: validUncategorizedIds
+      });
+    }
 
     return {
       playlists: playlistsWithVideos,
