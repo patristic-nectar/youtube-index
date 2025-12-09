@@ -423,6 +423,15 @@
   font-weight: 500;
 }
 
+.pn-video-card .pn-duration {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.pn-video-card:hover .pn-duration {
+  opacity: 1;
+}
+
 .pn-video-details {
   flex: 1;
   min-width: 0;
@@ -455,6 +464,23 @@
   margin: 0;
   font-size: 0.8125rem;
   color: var(--pn-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--pn-space-sm);
+  row-gap: 4px;
+  flex-wrap: wrap;
+}
+
+.pn-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.pn-meta-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 /* Grid View */
@@ -484,6 +510,7 @@
 
 .pn-video-card .pn-thumbnail {
   display: block;
+  position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #000;
