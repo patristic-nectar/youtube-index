@@ -3697,6 +3697,9 @@ function applySquarespaceColors() {
     },
 
     get playlistsWithVideos() {
+      // Return empty if videoMap not initialized yet
+      if (!this.videoMap) return [];
+
       const categoryGroups = {};
 
       // Parse playlists and group by category
@@ -3771,6 +3774,9 @@ function applySquarespaceColors() {
     },
 
     get totalUnfilteredVideos() {
+      // Return 0 if videoMap not initialized yet
+      if (!this.videoMap) return 0;
+
       // Count unique videos across all playlists without any filters
       const uniqueVideoIds = new Set();
 
