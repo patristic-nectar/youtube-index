@@ -3721,8 +3721,26 @@ function applySquarespaceColors() {
         }
 
         const isCollapsed = this.collapsedPlaylists[playlist.id] === true;
+        const category = playlist.category || 'Other';
 
-        // Get videos for this playlist
+        // Optimization: skip video array building for collapsed playlists without search
+        if (isCollapsed && !this.searchQuery) {
+          // Use pre-computed videoCount from playlist data
+          if (playlist.videoCount > 0) {
+            if (!categoryGroups[category]) {
+              categoryGroups[category] = [];
+            }
+            categoryGroups[category].push({
+              playlist: playlist,
+              videos: [], // Empty array - videos loaded on expand
+              videoCount: playlist.videoCount,
+              isCollapsed: true
+            });
+          }
+          continue;
+        }
+
+        // Get videos for this playlist (only when expanded or searching)
         let playlistVideos = (playlist.videoIds || [])
           .map(id => this.videoMap.get(id))
           .filter(v => v !== undefined);
@@ -3735,8 +3753,6 @@ function applySquarespaceColors() {
         }
 
         if (playlistVideos.length > 0) {
-          const category = playlist.category || 'Other';
-
           if (!categoryGroups[category]) {
             categoryGroups[category] = [];
           }
@@ -3745,6 +3761,7 @@ function applySquarespaceColors() {
           categoryGroups[category].push({
             playlist: playlist,
             videos: isCollapsed ? playlistVideos : this.sortVideos(playlistVideos),
+            videoCount: playlistVideos.length,
             isCollapsed: isCollapsed
           });
         }
@@ -3788,6 +3805,27 @@ function applySquarespaceColors() {
     },
 
     get totalVideos() {
+      // Fast path: no filters active, return total count
+      if (!this.searchQuery && !this.selectedPlaylist && !this.selectedCategory) {
+        return this.totalUnfilteredVideos;
+      }
+
+      // Fast path: only category filter (no search), count from filtered playlists
+      if (!this.searchQuery && !this.selectedPlaylist && this.selectedCategory) {
+        const uniqueVideoIds = new Set();
+        for (const playlist of this.playlists) {
+          if ((playlist.category || 'Other') === this.selectedCategory) {
+            for (const videoId of (playlist.videoIds || [])) {
+              if (this.videoMap.has(videoId)) {
+                uniqueVideoIds.add(videoId);
+              }
+            }
+          }
+        }
+        return uniqueVideoIds.size;
+      }
+
+      // Slow path: search or playlist filter active, count from computed videos
       const uniqueVideoIds = new Set();
       this.playlistsWithVideos.forEach(categoryGroup => {
         categoryGroup.playlists.forEach(playlistGroup => {
@@ -4116,7 +4154,7 @@ window.patristicNectarWidget = patristicNectarWidget;
                   <div class="pn-playlist-title-group">
                     <h3>
                       <span x-text="group.playlist.title"></span>
-                      <span class="pn-video-count" x-text="\` (\${group.videos.length} videos)\`"></span>
+                      <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
                     </h3>
                     <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
                   </div>
@@ -4201,7 +4239,7 @@ window.patristicNectarWidget = patristicNectarWidget;
                   <div class="pn-playlist-title-group">
                     <h3>
                       <span x-text="group.playlist.title"></span>
-                      <span class="pn-video-count" x-text="\` (\${group.videos.length} videos)\`"></span>
+                      <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
                     </h3>
                     <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
                   </div>
@@ -4379,7 +4417,7 @@ window.patristicNectarWidget = patristicNectarWidget;
                   <div class="pn-playlist-title-group">
                     <h3>
                       <span x-text="group.playlist.title"></span>
-                      <span class="pn-video-count" x-text="\` (\${group.videos.length} videos)\`"></span>
+                      <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
                     </h3>
                     <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
                   </div>
@@ -4464,7 +4502,7 @@ window.patristicNectarWidget = patristicNectarWidget;
                   <div class="pn-playlist-title-group">
                     <h3>
                       <span x-text="group.playlist.title"></span>
-                      <span class="pn-video-count" x-text="\` (\${group.videos.length} videos)\`"></span>
+                      <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
                     </h3>
                     <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
                   </div>
