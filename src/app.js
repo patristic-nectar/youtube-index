@@ -10,11 +10,25 @@ function patristicNectarWidget() {
     searchQueryInput: '',
     searchDebounceTimer: null,
     selectedPlaylist: '',
+    selectedCategory: '',
     sortBy: WIDGET_CONFIG.DEFAULT_SORT,
     collapsedPlaylists: {},
     layoutMode: 'list',
     currentPage: 1,
     itemsPerPage: WIDGET_CONFIG.DEFAULT_ITEMS_PER_PAGE,
+
+    get categories() {
+      // Get unique categories from all playlists, sorted alphabetically with "Other" last
+      const categorySet = new Set();
+      for (const playlist of this.playlists) {
+        categorySet.add(playlist.category || 'Other');
+      }
+      return Array.from(categorySet).sort((a, b) => {
+        if (a === 'Other') return 1;
+        if (b === 'Other') return -1;
+        return a.localeCompare(b);
+      });
+    },
 
     get playlistsWithVideos() {
       const categoryGroups = {};
@@ -23,6 +37,12 @@ function patristicNectarWidget() {
       for (const playlist of this.playlists) {
         // Skip if filtering by playlist and this isn't the selected one
         if (this.selectedPlaylist && this.selectedPlaylist !== playlist.id) {
+          continue;
+        }
+
+        // Skip if filtering by category and this playlist doesn't match
+        const playlistCategory = playlist.category || 'Other';
+        if (this.selectedCategory && this.selectedCategory !== playlistCategory) {
           continue;
         }
 
@@ -65,7 +85,6 @@ function patristicNectarWidget() {
       // Convert to array format with category headers
       const result = [];
       const sortedCategories = Object.keys(categoryGroups).sort((a, b) => {
-        // Always show "Other" last
         if (a === 'Other') return 1;
         if (b === 'Other') return -1;
         return a.localeCompare(b);
@@ -73,7 +92,6 @@ function patristicNectarWidget() {
 
       for (const category of sortedCategories) {
         result.push({
-          isCategory: true,
           categoryName: category,
           playlists: categoryGroups[category]
         });
@@ -115,7 +133,7 @@ function patristicNectarWidget() {
     },
 
     get hasActiveFilters() {
-      return this.searchQuery.trim() !== '' || this.selectedPlaylist !== '';
+      return this.searchQuery.trim() !== '' || this.selectedPlaylist !== '' || this.selectedCategory !== '';
     },
 
     get allFilteredVideos() {
