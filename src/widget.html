@@ -42,6 +42,22 @@
       </select>
     </div>
 
+    <div class="pn-category-tabs" x-show="categories.length > 1">
+      <button
+        class="pn-category-tab"
+        :class="{ 'pn-active': selectedCategory === '' }"
+        @click="selectedCategory = ''"
+      >All</button>
+      <template x-for="category in categories" :key="category">
+        <button
+          class="pn-category-tab"
+          :class="{ 'pn-active': selectedCategory === category }"
+          @click="selectedCategory = category"
+          x-text="category"
+        ></button>
+      </template>
+    </div>
+
     <div class="pn-toolbar">
       <button @click="toggleLayout()" class="pn-btn pn-btn-sm pn-layout-toggle">
         <svg x-show="layoutMode === 'list'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
