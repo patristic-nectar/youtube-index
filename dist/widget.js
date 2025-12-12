@@ -3680,11 +3680,16 @@ function applySquarespaceColors() {
     sortBy: WIDGET_CONFIG.DEFAULT_SORT,
     collapsedPlaylists: {},
     layoutMode: 'list',
+    _cachedCategories: null,
     currentPage: 1,
     itemsPerPage: WIDGET_CONFIG.DEFAULT_ITEMS_PER_PAGE,
 
     get categories() {
-      // Get unique categories from all playlists, sorted alphabetically with "Other" last
+      // Return cached categories if available (computed once during loadData)
+      if (this._cachedCategories) {
+        return this._cachedCategories;
+      }
+      // Fallback: compute if not yet cached
       const categorySet = new Set();
       for (const playlist of this.playlists) {
         categorySet.add(playlist.category || 'Other');
@@ -3715,6 +3720,8 @@ function applySquarespaceColors() {
           continue;
         }
 
+        const isCollapsed = this.collapsedPlaylists[playlist.id] === true;
+
         // Get videos for this playlist
         let playlistVideos = (playlist.videoIds || [])
           .map(id => this.videoMap.get(id))
@@ -3727,8 +3734,6 @@ function applySquarespaceColors() {
           );
         }
 
-        playlistVideos = this.sortVideos(playlistVideos);
-
         if (playlistVideos.length > 0) {
           const category = playlist.category || 'Other';
 
@@ -3736,34 +3741,25 @@ function applySquarespaceColors() {
             categoryGroups[category] = [];
           }
 
+          // Only sort videos if playlist is expanded (sorting is expensive)
           categoryGroups[category].push({
             playlist: playlist,
-            videos: playlistVideos,
-            isCollapsed: this.collapsedPlaylists[playlist.id] === true
+            videos: isCollapsed ? playlistVideos : this.sortVideos(playlistVideos),
+            isCollapsed: isCollapsed
           });
         }
       }
 
-      // Sort playlists within each category alphabetically by title
-      Object.keys(categoryGroups).forEach(category => {
-        categoryGroups[category].sort((a, b) =>
-          a.playlist.title.localeCompare(b.playlist.title)
-        );
-      });
-
       // Convert to array format with category headers
+      // (playlists are pre-sorted by category and title during loadData)
       const result = [];
-      const sortedCategories = Object.keys(categoryGroups).sort((a, b) => {
-        if (a === 'Other') return 1;
-        if (b === 'Other') return -1;
-        return a.localeCompare(b);
-      });
-
-      for (const category of sortedCategories) {
-        result.push({
-          categoryName: category,
-          playlists: categoryGroups[category]
-        });
+      for (const category of this.categories) {
+        if (categoryGroups[category]) {
+          result.push({
+            categoryName: category,
+            playlists: categoryGroups[category]
+          });
+        }
       }
 
       return result;
@@ -3854,6 +3850,7 @@ function applySquarespaceColors() {
       });
 
       this.$watch('selectedPlaylist', () => { this.currentPage = 1; });
+      this.$watch('selectedCategory', () => { this.currentPage = 1; });
       this.$watch('sortBy', () => { this.currentPage = 1; });
     },
 
@@ -3881,13 +3878,36 @@ function applySquarespaceColors() {
         }
 
         this.playlists = await playlistsRes.json();
+
+        // Pre-sort playlists by category then title (done once during load)
+        this.playlists.sort((a, b) => {
+          const catA = a.category || 'Other';
+          const catB = b.category || 'Other';
+          if (catA === 'Other' && catB !== 'Other') return 1;
+          if (catB === 'Other' && catA !== 'Other') return -1;
+          if (catA !== catB) return catA.localeCompare(catB);
+          return a.title.localeCompare(b.title);
+        });
+
+        // Cache unique categories (done once during load)
+        const categorySet = new Set();
+        for (const playlist of this.playlists) {
+          categorySet.add(playlist.category || 'Other');
+        }
+        this._cachedCategories = Array.from(categorySet).sort((a, b) => {
+          if (a === 'Other') return 1;
+          if (b === 'Other') return -1;
+          return a.localeCompare(b);
+        });
+
         this.videos = await videosRes.json();
 
-        // Pre-normalize video data for faster searching
+        // Pre-normalize video data for faster searching and sorting
         this.videos = this.videos.map(v => ({
           ...v,
           titleLowercase: v.title.toLowerCase(),
-          descriptionLowercase: (v.description || '').toLowerCase()
+          descriptionLowercase: (v.description || '').toLowerCase(),
+          publishedTimestamp: new Date(v.publishedAt).getTime()
         }));
 
         // Build video map for O(1) lookups (done once during load)
@@ -3932,9 +3952,9 @@ function applySquarespaceColors() {
       const sorted = [...videos];
       switch (this.sortBy) {
         case 'date-desc':
-          return sorted.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+          return sorted.sort((a, b) => b.publishedTimestamp - a.publishedTimestamp);
         case 'date-asc':
-          return sorted.sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+          return sorted.sort((a, b) => a.publishedTimestamp - b.publishedTimestamp);
         case 'title-asc':
           return sorted.sort((a, b) => a.title.localeCompare(b.title));
         case 'title-desc':
