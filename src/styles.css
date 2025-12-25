@@ -701,6 +701,25 @@
 
   .pn-pagination {
     flex-wrap: wrap;
+    gap: var(--pn-space-sm);
+  }
+
+  .pn-pagination .pn-btn {
+    flex: 1 1 0;
+  }
+
+  .pn-pagination .pn-page-info {
+    flex: 0 0 100%;
+    order: 3;
+    text-align: center;
+  }
+
+  .pn-pagination .pn-btn:first-of-type {
+    order: 1;
+  }
+
+  .pn-pagination .pn-btn:last-of-type {
+    order: 2;
   }
 }
 
