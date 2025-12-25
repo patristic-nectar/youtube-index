@@ -59,8 +59,8 @@ function patristicNectarWidget() {
 
         // Optimization: skip video array building for collapsed playlists without search
         if (isCollapsed && !this.searchQuery) {
-          // Use pre-computed videoCount from playlist data
-          if (playlist.videoCount > 0) {
+          const hasVideoIds = (playlist.videoIds || []).length > 0;
+          if (hasVideoIds) {
             if (!categoryGroups[category]) {
               categoryGroups[category] = [];
             }
