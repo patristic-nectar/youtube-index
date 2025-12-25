@@ -17,6 +17,8 @@ function patristicNectarWidget() {
     _cachedCategories: null,
     currentPage: 1,
     itemsPerPage: WIDGET_CONFIG.DEFAULT_ITEMS_PER_PAGE,
+    gridItemsPerPage: 20, // Items per page for grid view (calculated dynamically)
+    playlistPages: {}, // playlistId -> current page number for each playlist
 
     get categories() {
       // Return cached categories if available (computed once during loadData)
@@ -291,10 +293,12 @@ function patristicNectarWidget() {
           this.lastUpdated = metadata.timestamp;
         }
 
-        // Initialize all playlists as collapsed
+        // Initialize all playlists as collapsed and at page 1
         this.collapsedPlaylists = {};
+        this.playlistPages = {};
         this.playlists.forEach(playlist => {
           this.collapsedPlaylists[playlist.id] = true;
+          this.playlistPages[playlist.id] = 1;
         });
       } catch (err) {
         this.error = err.message || 'Failed to load videos. Please try again later.';
@@ -306,6 +310,8 @@ function patristicNectarWidget() {
 
     togglePlaylist(playlistId) {
       this.collapsedPlaylists[playlistId] = !this.collapsedPlaylists[playlistId];
+      // Reset to page 1 when toggling
+      this.playlistPages[playlistId] = 1;
     },
 
     expandAll() {
@@ -365,6 +371,40 @@ function patristicNectarWidget() {
       if (views >= 1000000) return (views / 1000000).toFixed(1) + 'M';
       if (views >= 1000) return (views / 1000).toFixed(1) + 'K';
       return views?.toString() || '0';
+    },
+
+    // Playlist pagination methods
+    getPlaylistPage(playlistId) {
+      return this.playlistPages[playlistId] || 1;
+    },
+
+    setPlaylistPage(playlistId, page) {
+      this.playlistPages[playlistId] = page;
+    },
+
+    getPlaylistTotalPages(videoCount) {
+      return Math.ceil(videoCount / this.gridItemsPerPage);
+    },
+
+    getPaginatedVideos(videos, playlistId) {
+      const page = this.getPlaylistPage(playlistId);
+      const start = (page - 1) * this.gridItemsPerPage;
+      const end = start + this.gridItemsPerPage;
+      return videos.slice(start, end);
+    },
+
+    nextPlaylistPage(playlistId, totalPages) {
+      const currentPage = this.getPlaylistPage(playlistId);
+      if (currentPage < totalPages) {
+        this.setPlaylistPage(playlistId, currentPage + 1);
+      }
+    },
+
+    prevPlaylistPage(playlistId) {
+      const currentPage = this.getPlaylistPage(playlistId);
+      if (currentPage > 1) {
+        this.setPlaylistPage(playlistId, currentPage - 1);
+      }
     }
   };
 }

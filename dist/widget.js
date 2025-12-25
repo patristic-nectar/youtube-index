@@ -3683,6 +3683,8 @@ function applySquarespaceColors() {
     _cachedCategories: null,
     currentPage: 1,
     itemsPerPage: WIDGET_CONFIG.DEFAULT_ITEMS_PER_PAGE,
+    gridItemsPerPage: 20, // Items per page for grid view (calculated dynamically)
+    playlistPages: {}, // playlistId -> current page number for each playlist
 
     get categories() {
       // Return cached categories if available (computed once during loadData)
@@ -3957,10 +3959,12 @@ function applySquarespaceColors() {
           this.lastUpdated = metadata.timestamp;
         }
 
-        // Initialize all playlists as collapsed
+        // Initialize all playlists as collapsed and at page 1
         this.collapsedPlaylists = {};
+        this.playlistPages = {};
         this.playlists.forEach(playlist => {
           this.collapsedPlaylists[playlist.id] = true;
+          this.playlistPages[playlist.id] = 1;
         });
       } catch (err) {
         this.error = err.message || 'Failed to load videos. Please try again later.';
@@ -3972,6 +3976,8 @@ function applySquarespaceColors() {
 
     togglePlaylist(playlistId) {
       this.collapsedPlaylists[playlistId] = !this.collapsedPlaylists[playlistId];
+      // Reset to page 1 when toggling
+      this.playlistPages[playlistId] = 1;
     },
 
     expandAll() {
@@ -4031,6 +4037,40 @@ function applySquarespaceColors() {
       if (views >= 1000000) return (views / 1000000).toFixed(1) + 'M';
       if (views >= 1000) return (views / 1000).toFixed(1) + 'K';
       return views?.toString() || '0';
+    },
+
+    // Playlist pagination methods
+    getPlaylistPage(playlistId) {
+      return this.playlistPages[playlistId] || 1;
+    },
+
+    setPlaylistPage(playlistId, page) {
+      this.playlistPages[playlistId] = page;
+    },
+
+    getPlaylistTotalPages(videoCount) {
+      return Math.ceil(videoCount / this.gridItemsPerPage);
+    },
+
+    getPaginatedVideos(videos, playlistId) {
+      const page = this.getPlaylistPage(playlistId);
+      const start = (page - 1) * this.gridItemsPerPage;
+      const end = start + this.gridItemsPerPage;
+      return videos.slice(start, end);
+    },
+
+    nextPlaylistPage(playlistId, totalPages) {
+      const currentPage = this.getPlaylistPage(playlistId);
+      if (currentPage < totalPages) {
+        this.setPlaylistPage(playlistId, currentPage + 1);
+      }
+    },
+
+    prevPlaylistPage(playlistId) {
+      const currentPage = this.getPlaylistPage(playlistId);
+      if (currentPage > 1) {
+        this.setPlaylistPage(playlistId, currentPage - 1);
+      }
     }
   };
 }
@@ -4135,156 +4175,197 @@ window.patristicNectarWidget = patristicNectarWidget;
     </div>
 
     <!-- List View (Playlist-based with Categories) -->
-    <div x-show="layoutMode === 'list' && playlistsWithVideos.length > 0" class="pn-playlists">
-      <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
-        <div class="pn-category-group">
-          <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
+    <template x-if="layoutMode === 'list' && playlistsWithVideos.length > 0">
+      <div class="pn-playlists">
+        <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
+          <div class="pn-category-group">
+            <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
 
-          <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
-            <div class="pn-playlist-section">
-              <div
-                class="pn-playlist-header"
-                @click="togglePlaylist(group.playlist.id)"
-                :class="{ 'pn-collapsed': group.isCollapsed }"
-              >
-                <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <div class="pn-playlist-info">
-                  <div class="pn-playlist-title-group">
-                    <h3>
-                      <span x-text="group.playlist.title"></span>
-                      <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
-                    </h3>
-                    <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
-                  </div>
-                </div>
-                <a
-                  :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
-                  target="_blank"
-                  rel="noopener"
-                  class="pn-playlist-youtube-link"
-                  @click.stop
-                  title="Open playlist on YouTube"
+            <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
+              <div class="pn-playlist-section">
+                <div
+                  class="pn-playlist-header"
+                  @click="togglePlaylist(group.playlist.id)"
+                  :class="{ 'pn-collapsed': group.isCollapsed }"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
-                </a>
-              </div>
-
-              <div x-show="!group.isCollapsed" class="pn-video-list">
-                <template x-for="video in group.videos" :key="video.id">
-                  <div class="pn-video-item">
-                    <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
-                      <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
-                    </a>
-                    <div class="pn-video-details">
-                      <h4 class="pn-video-title">
-                        <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                      </h4>
-                      <p class="pn-video-meta">
-                        <span class="pn-meta-item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                            <path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>
-                          </svg>
-                          <span x-text="formatDate(video.publishedAt)"></span>
-                        </span>
-                        <span class="pn-meta-item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                            <line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>
-                          </svg>
-                          <span x-text="video.durationFormatted"></span>
-                        </span>
-                        <span class="pn-meta-item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>
-                          </svg>
-                          <span x-text="formatViews(video.viewCount)"></span> views
-                        </span>
-                        <span class="pn-meta-item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                            <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                          </svg>
-                          <span x-text="formatViews(video.likeCount)"></span> likes
-                        </span>
-                      </p>
+                  <div class="pn-playlist-info">
+                    <div class="pn-playlist-title-group">
+                      <h3>
+                        <span x-text="group.playlist.title"></span>
+                        <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
+                      </h3>
+                      <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
                     </div>
                   </div>
-                </template>
+                  <a
+                    :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
+                    target="_blank"
+                    rel="noopener"
+                    class="pn-playlist-youtube-link"
+                    @click.stop
+                    title="Open playlist on YouTube"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  </a>
+                </div>
+
+                <div x-show="!group.isCollapsed" class="pn-playlist-content">
+                  <div class="pn-video-list">
+                    <template x-for="video in getPaginatedVideos(group.videos, group.playlist.id)" :key="video.id">
+                          <div class="pn-video-item">
+                            <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
+                              <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
+                            </a>
+                            <div class="pn-video-details">
+                              <h4 class="pn-video-title">
+                                <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+                              </h4>
+                              <p class="pn-video-meta">
+                                <span class="pn-meta-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
+                                    <path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>
+                                  </svg>
+                                  <span x-text="formatDate(video.publishedAt)"></span>
+                                </span>
+                                <span class="pn-meta-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
+                                    <line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>
+                                  </svg>
+                                  <span x-text="video.durationFormatted"></span>
+                                </span>
+                                <span class="pn-meta-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>
+                                  </svg>
+                                  <span x-text="formatViews(video.viewCount)"></span> views
+                                </span>
+                                <span class="pn-meta-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
+                                    <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
+                                  </svg>
+                                  <span x-text="formatViews(video.likeCount)"></span> likes
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                    </template>
+                  </div>
+
+                  <!-- Pagination controls -->
+                  <div x-show="getPlaylistTotalPages(group.videos.length) > 1" class="pn-pagination">
+                    <button
+                      @click="prevPlaylistPage(group.playlist.id)"
+                      :disabled="getPlaylistPage(group.playlist.id) === 1"
+                      class="pn-btn"
+                    >Previous</button>
+                    <span class="pn-page-info">
+                      Page <span x-text="getPlaylistPage(group.playlist.id)"></span> of <span x-text="getPlaylistTotalPages(group.videos.length)"></span>
+                    </span>
+                    <button
+                      @click="nextPlaylistPage(group.playlist.id, getPlaylistTotalPages(group.videos.length))"
+                      :disabled="getPlaylistPage(group.playlist.id) === getPlaylistTotalPages(group.videos.length)"
+                      class="pn-btn"
+                    >Next</button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </template>
-        </div>
-      </template>
-    </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
 
     <!-- Grid View (Playlist-based with Categories) -->
-    <div x-show="layoutMode === 'grid' && playlistsWithVideos.length > 0" class="pn-playlists">
-      <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
-        <div class="pn-category-group">
-          <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
+    <template x-if="layoutMode === 'grid' && playlistsWithVideos.length > 0">
+      <div class="pn-playlists">
+        <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
+          <div class="pn-category-group">
+            <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
 
-          <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
-            <div class="pn-playlist-section">
-              <div
-                class="pn-playlist-header"
-                @click="togglePlaylist(group.playlist.id)"
-                :class="{ 'pn-collapsed': group.isCollapsed }"
-              >
-                <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <div class="pn-playlist-info">
-                  <div class="pn-playlist-title-group">
-                    <h3>
-                      <span x-text="group.playlist.title"></span>
-                      <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
-                    </h3>
-                    <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+            <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
+              <div class="pn-playlist-section">
+                <div
+                  class="pn-playlist-header"
+                  @click="togglePlaylist(group.playlist.id)"
+                  :class="{ 'pn-collapsed': group.isCollapsed }"
+                >
+                  <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div class="pn-playlist-info">
+                    <div class="pn-playlist-title-group">
+                      <h3>
+                        <span x-text="group.playlist.title"></span>
+                        <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
+                      </h3>
+                      <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+                    </div>
+                  </div>
+                  <a
+                    :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
+                    target="_blank"
+                    rel="noopener"
+                    class="pn-playlist-youtube-link"
+                    @click.stop
+                    title="Open playlist on YouTube"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  </a>
+                </div>
+
+                <div x-show="!group.isCollapsed" class="pn-playlist-content">
+                  <div class="pn-video-grid">
+                    <template x-for="video in getPaginatedVideos(group.videos, group.playlist.id)" :key="video.id">
+                      <div class="pn-video-card">
+                        <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
+                          <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy" @load="\$el.classList.add('pn-loaded')" @error="\$el.classList.add('pn-loaded')">
+                          <span class="pn-duration" x-text="video.durationFormatted"></span>
+                        </a>
+                        <div class="pn-video-info">
+                          <h3 class="pn-video-title">
+                            <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+                          </h3>
+                          <p class="pn-video-meta">
+                            <span x-text="formatDate(video.publishedAt)"></span>
+                            <span> • </span>
+                            <span x-text="formatViews(video.viewCount)"></span> views
+                          </p>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- Pagination controls -->
+                  <div x-show="getPlaylistTotalPages(group.videos.length) > 1" class="pn-pagination">
+                    <button
+                      @click="prevPlaylistPage(group.playlist.id)"
+                      :disabled="getPlaylistPage(group.playlist.id) === 1"
+                      class="pn-btn"
+                    >Previous</button>
+                    <span class="pn-page-info">
+                      Page <span x-text="getPlaylistPage(group.playlist.id)"></span> of <span x-text="getPlaylistTotalPages(group.videos.length)"></span>
+                    </span>
+                    <button
+                      @click="nextPlaylistPage(group.playlist.id, getPlaylistTotalPages(group.videos.length))"
+                      :disabled="getPlaylistPage(group.playlist.id) === getPlaylistTotalPages(group.videos.length)"
+                      class="pn-btn"
+                    >Next</button>
                   </div>
                 </div>
-                <a
-                  :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
-                  target="_blank"
-                  rel="noopener"
-                  class="pn-playlist-youtube-link"
-                  @click.stop
-                  title="Open playlist on YouTube"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                  </svg>
-                </a>
               </div>
-
-              <div x-show="!group.isCollapsed" class="pn-video-grid-container">
-                <div class="pn-video-grid">
-                  <template x-for="video in group.videos" :key="video.id">
-                    <div class="pn-video-card">
-                      <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
-                        <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
-                        <span class="pn-duration" x-text="video.durationFormatted"></span>
-                      </a>
-                      <div class="pn-video-info">
-                        <h3 class="pn-video-title">
-                          <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                        </h3>
-                        <p class="pn-video-meta">
-                          <span x-text="formatDate(video.publishedAt)"></span>
-                          <span> • </span>
-                          <span x-text="formatViews(video.viewCount)"></span> views
-                        </p>
-                      </div>
-                    </div>
-                  </template>
-                </div>
-              </div>
-            </div>
-          </template>
-        </div>
-      </template>
-    </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
   </div>
 </div>
 `;
@@ -4398,156 +4479,197 @@ window.patristicNectarWidget = patristicNectarWidget;
     </div>
 
     <!-- List View (Playlist-based with Categories) -->
-    <div x-show="layoutMode === 'list' && playlistsWithVideos.length > 0" class="pn-playlists">
-      <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
-        <div class="pn-category-group">
-          <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
+    <template x-if="layoutMode === 'list' && playlistsWithVideos.length > 0">
+      <div class="pn-playlists">
+        <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
+          <div class="pn-category-group">
+            <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
 
-          <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
-            <div class="pn-playlist-section">
-              <div
-                class="pn-playlist-header"
-                @click="togglePlaylist(group.playlist.id)"
-                :class="{ 'pn-collapsed': group.isCollapsed }"
-              >
-                <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <div class="pn-playlist-info">
-                  <div class="pn-playlist-title-group">
-                    <h3>
-                      <span x-text="group.playlist.title"></span>
-                      <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
-                    </h3>
-                    <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
-                  </div>
-                </div>
-                <a
-                  :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
-                  target="_blank"
-                  rel="noopener"
-                  class="pn-playlist-youtube-link"
-                  @click.stop
-                  title="Open playlist on YouTube"
+            <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
+              <div class="pn-playlist-section">
+                <div
+                  class="pn-playlist-header"
+                  @click="togglePlaylist(group.playlist.id)"
+                  :class="{ 'pn-collapsed': group.isCollapsed }"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
-                </a>
-              </div>
-
-              <div x-show="!group.isCollapsed" class="pn-video-list">
-                <template x-for="video in group.videos" :key="video.id">
-                  <div class="pn-video-item">
-                    <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
-                      <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
-                    </a>
-                    <div class="pn-video-details">
-                      <h4 class="pn-video-title">
-                        <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                      </h4>
-                      <p class="pn-video-meta">
-                        <span class="pn-meta-item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                            <path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>
-                          </svg>
-                          <span x-text="formatDate(video.publishedAt)"></span>
-                        </span>
-                        <span class="pn-meta-item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                            <line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>
-                          </svg>
-                          <span x-text="video.durationFormatted"></span>
-                        </span>
-                        <span class="pn-meta-item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>
-                          </svg>
-                          <span x-text="formatViews(video.viewCount)"></span> views
-                        </span>
-                        <span class="pn-meta-item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                            <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                          </svg>
-                          <span x-text="formatViews(video.likeCount)"></span> likes
-                        </span>
-                      </p>
+                  <div class="pn-playlist-info">
+                    <div class="pn-playlist-title-group">
+                      <h3>
+                        <span x-text="group.playlist.title"></span>
+                        <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
+                      </h3>
+                      <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
                     </div>
                   </div>
-                </template>
+                  <a
+                    :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
+                    target="_blank"
+                    rel="noopener"
+                    class="pn-playlist-youtube-link"
+                    @click.stop
+                    title="Open playlist on YouTube"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  </a>
+                </div>
+
+                <div x-show="!group.isCollapsed" class="pn-playlist-content">
+                  <div class="pn-video-list">
+                    <template x-for="video in getPaginatedVideos(group.videos, group.playlist.id)" :key="video.id">
+                          <div class="pn-video-item">
+                            <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
+                              <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
+                            </a>
+                            <div class="pn-video-details">
+                              <h4 class="pn-video-title">
+                                <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+                              </h4>
+                              <p class="pn-video-meta">
+                                <span class="pn-meta-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
+                                    <path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>
+                                  </svg>
+                                  <span x-text="formatDate(video.publishedAt)"></span>
+                                </span>
+                                <span class="pn-meta-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
+                                    <line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>
+                                  </svg>
+                                  <span x-text="video.durationFormatted"></span>
+                                </span>
+                                <span class="pn-meta-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>
+                                  </svg>
+                                  <span x-text="formatViews(video.viewCount)"></span> views
+                                </span>
+                                <span class="pn-meta-item">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
+                                    <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
+                                  </svg>
+                                  <span x-text="formatViews(video.likeCount)"></span> likes
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                    </template>
+                  </div>
+
+                  <!-- Pagination controls -->
+                  <div x-show="getPlaylistTotalPages(group.videos.length) > 1" class="pn-pagination">
+                    <button
+                      @click="prevPlaylistPage(group.playlist.id)"
+                      :disabled="getPlaylistPage(group.playlist.id) === 1"
+                      class="pn-btn"
+                    >Previous</button>
+                    <span class="pn-page-info">
+                      Page <span x-text="getPlaylistPage(group.playlist.id)"></span> of <span x-text="getPlaylistTotalPages(group.videos.length)"></span>
+                    </span>
+                    <button
+                      @click="nextPlaylistPage(group.playlist.id, getPlaylistTotalPages(group.videos.length))"
+                      :disabled="getPlaylistPage(group.playlist.id) === getPlaylistTotalPages(group.videos.length)"
+                      class="pn-btn"
+                    >Next</button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </template>
-        </div>
-      </template>
-    </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
 
     <!-- Grid View (Playlist-based with Categories) -->
-    <div x-show="layoutMode === 'grid' && playlistsWithVideos.length > 0" class="pn-playlists">
-      <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
-        <div class="pn-category-group">
-          <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
+    <template x-if="layoutMode === 'grid' && playlistsWithVideos.length > 0">
+      <div class="pn-playlists">
+        <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
+          <div class="pn-category-group">
+            <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
 
-          <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
-            <div class="pn-playlist-section">
-              <div
-                class="pn-playlist-header"
-                @click="togglePlaylist(group.playlist.id)"
-                :class="{ 'pn-collapsed': group.isCollapsed }"
-              >
-                <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <div class="pn-playlist-info">
-                  <div class="pn-playlist-title-group">
-                    <h3>
-                      <span x-text="group.playlist.title"></span>
-                      <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
-                    </h3>
-                    <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+            <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
+              <div class="pn-playlist-section">
+                <div
+                  class="pn-playlist-header"
+                  @click="togglePlaylist(group.playlist.id)"
+                  :class="{ 'pn-collapsed': group.isCollapsed }"
+                >
+                  <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div class="pn-playlist-info">
+                    <div class="pn-playlist-title-group">
+                      <h3>
+                        <span x-text="group.playlist.title"></span>
+                        <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
+                      </h3>
+                      <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+                    </div>
+                  </div>
+                  <a
+                    :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
+                    target="_blank"
+                    rel="noopener"
+                    class="pn-playlist-youtube-link"
+                    @click.stop
+                    title="Open playlist on YouTube"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  </a>
+                </div>
+
+                <div x-show="!group.isCollapsed" class="pn-playlist-content">
+                  <div class="pn-video-grid">
+                    <template x-for="video in getPaginatedVideos(group.videos, group.playlist.id)" :key="video.id">
+                      <div class="pn-video-card">
+                        <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
+                          <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy" @load="\$el.classList.add('pn-loaded')" @error="\$el.classList.add('pn-loaded')">
+                          <span class="pn-duration" x-text="video.durationFormatted"></span>
+                        </a>
+                        <div class="pn-video-info">
+                          <h3 class="pn-video-title">
+                            <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
+                          </h3>
+                          <p class="pn-video-meta">
+                            <span x-text="formatDate(video.publishedAt)"></span>
+                            <span> • </span>
+                            <span x-text="formatViews(video.viewCount)"></span> views
+                          </p>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- Pagination controls -->
+                  <div x-show="getPlaylistTotalPages(group.videos.length) > 1" class="pn-pagination">
+                    <button
+                      @click="prevPlaylistPage(group.playlist.id)"
+                      :disabled="getPlaylistPage(group.playlist.id) === 1"
+                      class="pn-btn"
+                    >Previous</button>
+                    <span class="pn-page-info">
+                      Page <span x-text="getPlaylistPage(group.playlist.id)"></span> of <span x-text="getPlaylistTotalPages(group.videos.length)"></span>
+                    </span>
+                    <button
+                      @click="nextPlaylistPage(group.playlist.id, getPlaylistTotalPages(group.videos.length))"
+                      :disabled="getPlaylistPage(group.playlist.id) === getPlaylistTotalPages(group.videos.length)"
+                      class="pn-btn"
+                    >Next</button>
                   </div>
                 </div>
-                <a
-                  :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
-                  target="_blank"
-                  rel="noopener"
-                  class="pn-playlist-youtube-link"
-                  @click.stop
-                  title="Open playlist on YouTube"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                  </svg>
-                </a>
               </div>
-
-              <div x-show="!group.isCollapsed" class="pn-video-grid-container">
-                <div class="pn-video-grid">
-                  <template x-for="video in group.videos" :key="video.id">
-                    <div class="pn-video-card">
-                      <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
-                        <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
-                        <span class="pn-duration" x-text="video.durationFormatted"></span>
-                      </a>
-                      <div class="pn-video-info">
-                        <h3 class="pn-video-title">
-                          <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                        </h3>
-                        <p class="pn-video-meta">
-                          <span x-text="formatDate(video.publishedAt)"></span>
-                          <span> • </span>
-                          <span x-text="formatViews(video.viewCount)"></span> views
-                        </p>
-                      </div>
-                    </div>
-                  </template>
-                </div>
-              </div>
-            </div>
-          </template>
-        </div>
-      </template>
-    </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
   </div>
 </div>
 `;
