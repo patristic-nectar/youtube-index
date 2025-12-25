@@ -59,15 +59,15 @@ function patristicNectarWidget() {
 
         // Optimization: skip video array building for collapsed playlists without search
         if (isCollapsed && !this.searchQuery) {
-          const hasVideoIds = (playlist.videoIds || []).length > 0;
-          if (hasVideoIds) {
+          const videoIdCount = (playlist.videoIds || []).length;
+          if (videoIdCount > 0) {
             if (!categoryGroups[category]) {
               categoryGroups[category] = [];
             }
             categoryGroups[category].push({
               playlist: playlist,
               videos: [], // Empty array - videos loaded on expand
-              videoCount: playlist.videoCount,
+              videoCount: videoIdCount,
               isCollapsed: true
             });
           }
