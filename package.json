@@ -4,7 +4,10 @@
   "description": "A searchable index of all Patristic Nectar YouTube videos",
   "main": "dist/widget.js",
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "fetch:youtube": "node scripts/fetch-youtube-data.js",
+    "fetch:pat-api": "node scripts/fetch-patristic-api-data.js",
+    "build:index": "node scripts/build-unified-index.js"
   },
   "keywords": [
     "youtube",

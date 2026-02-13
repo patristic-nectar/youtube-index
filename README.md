@@ -1,20 +1,20 @@
-# Patristic Nectar YouTube Index
+# Patristic Nectar Content Index
 
-A simple and searchable index of all Patristic Nectar YouTube videos, organized by playlists.
+A searchable index of Patristic Nectar content (YouTube videos + Patristic API content), organized into collections.
 
 ![Widget Screenshot](screenshot.png)
 
 ## Tutorial
 
-This index pulls all video and organization information from YouTube itself, which makes it simple to update from a single location.
+This index pulls and merges data from YouTube and the Patristic API into unified JSON files.
 
-### Playlists
+### YouTube Playlists
 
 The playlists themselves are direct copies of playlists from YouTube, so to add, remove, or update playlists, simply modify or create them as needed on YouTube. The index updates every 6 hours so the changes may take some time to reflect.
 
 Any videos not in a playlist will be placed in an **"Uncategorized"** playlist at the bottom of the index.
 
-### Categories
+### Major Collections
 
 Playlists can be separated into major categories, such as Author, Topic, or anything else, to organize them cleanly in the index. These categories are completely customizable from YouTube. To change the category of a playlist, alter the playlist description by adding a tag at the end `` `[XXXX]` `` where XXXX is the name of the category.
 
@@ -46,7 +46,16 @@ This index was designed to be user-friendly and integrated with the current vide
 
 #### Automatic Update System
 
-Since all data is fetched from YouTube itself, we use a free API key stored as a [GitHub Secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets). Every user loading the data directly from YouTube would surpass the limits of the free API key, so instead the data is fetched and cached in a GitHub Action every 6 hours. This system keeps the API key secure, ensures we can use the free API key tier, maintains performance when loading the index, and allows us to format the data properly for the index.
+Data is fetched and cached in GitHub Actions every 6 hours, then committed into `data/`.
+The workflow runs:
+- `node scripts/fetch-youtube-data.js`
+- `node scripts/fetch-patristic-api-data.js`
+- `node scripts/build-unified-index.js`
+
+The widget reads unified runtime files:
+- `data/index-collections.json`
+- `data/index-items.json`
+- `data/index-metadata.json`
 
 #### Widget
 

@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-02-13T01:29:29.896Z",
+  "collectionCount": 549,
+  "itemCount": 3037,
+  "sources": {
+    "youtube": {
+      "timestamp": "2026-02-12T18:50:09.760Z",
+      "playlistCount": 50,
+      "videoCount": 1099
+    },
+    "patristic_api": {
+      "timestamp": "2026-02-11T05:02:28.236Z",
+      "collectionCount": 490,
+      "contentCount": 1938
+    }
+  },
+  "contentTypeCounts": {
+    "video": 1099,
+    "lecture": 517,
+    "podcast": 1421
+  }
+}

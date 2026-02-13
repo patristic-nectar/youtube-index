@@ -1,4 +1,4 @@
-name: Fetch YouTube Data
+name: Update Unified Index Data
 
 on:
   # Run every 6 hours (at 00:00, 06:00, 12:00, 18:00 UTC)
@@ -29,6 +29,12 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: node scripts/fetch-youtube-data.js
 
+      - name: Fetch Patristic API data
+        run: node scripts/fetch-patristic-api-data.js
+
+      - name: Build unified index files
+        run: node scripts/build-unified-index.js
+
       - name: Check for changes
         id: git-check
         run: |
@@ -40,7 +46,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add data/
-          git commit -m "Update YouTube data [automated]"
+          git commit -m "Update unified index data [automated]"
           git push
 
       - name: No changes detected

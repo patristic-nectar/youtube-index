@@ -2,235 +2,187 @@ function patristicNectarWidget() {
   return {
     loading: false,
     error: null,
-    playlists: [],
-    videos: [],
-    videoMap: null,
+    collections: [],
+    items: [],
+    collectionItemMap: null,
     lastUpdated: null,
-    searchQuery: '',
-    searchQueryInput: '',
+    searchQuery: "",
+    searchQueryInput: "",
     searchDebounceTimer: null,
-    selectedPlaylist: '',
-    selectedCategory: '',
+    selectedCollection: "",
     sortBy: WIDGET_CONFIG.DEFAULT_SORT,
-    collapsedPlaylists: {},
-    layoutMode: 'list',
-    _cachedCategories: null,
+    collapsedMajorCollections: {},
+    collapsedCollections: {},
+    layoutMode: "list",
     currentPage: 1,
     itemsPerPage: WIDGET_CONFIG.DEFAULT_ITEMS_PER_PAGE,
-    gridItemsPerPage: 20, // Items per page for grid view (calculated dynamically)
-    playlistPages: {}, // playlistId -> current page number for each playlist
+    gridItemsPerPage: 20,
+    collectionPages: {},
+    visibleContentTypes: {
+      video: true,
+      lecture: true,
+      podcast: true,
+      synaxarion: true,
+    },
 
-    get categories() {
-      // Return cached categories if available (computed once during loadData)
-      if (this._cachedCategories) {
-        return this._cachedCategories;
+    get sortedCollections() {
+      return this.collections
+        .filter((collection) => collection.type === "collection")
+        .sort((a, b) => a.title.localeCompare(b.title));
+    },
+
+    get majorCollections() {
+      const set = new Set();
+      for (const collection of this.collections) {
+        if (collection.type !== "collection") continue;
+        set.add(collection.majorCollection || "Other");
       }
-      // Fallback: compute if not yet cached
-      const categorySet = new Set();
-      for (const playlist of this.playlists) {
-        categorySet.add(playlist.category || 'Other');
-      }
-      return Array.from(categorySet).sort((a, b) => {
-        if (a === 'Other') return 1;
-        if (b === 'Other') return -1;
+      return Array.from(set).sort((a, b) => {
+        if (a === "Other") return 1;
+        if (b === "Other") return -1;
         return a.localeCompare(b);
       });
     },
 
-    get playlistsWithVideos() {
-      // Return empty if videoMap not initialized yet
-      if (!this.videoMap) return [];
-
-      const categoryGroups = {};
-
-      // Parse playlists and group by category
-      for (const playlist of this.playlists) {
-        // Skip if filtering by playlist and this isn't the selected one
-        if (this.selectedPlaylist && this.selectedPlaylist !== playlist.id) {
-          continue;
-        }
-
-        // Skip if filtering by category and this playlist doesn't match
-        const playlistCategory = playlist.category || 'Other';
-        if (this.selectedCategory && this.selectedCategory !== playlistCategory) {
-          continue;
-        }
-
-        const isCollapsed = this.collapsedPlaylists[playlist.id] === true;
-        const category = playlist.category || 'Other';
-
-        // Optimization: skip video array building for collapsed playlists without search
-        if (isCollapsed && !this.searchQuery) {
-          const videoIdCount = (playlist.videoIds || []).length;
-          if (videoIdCount > 0) {
-            if (!categoryGroups[category]) {
-              categoryGroups[category] = [];
-            }
-            categoryGroups[category].push({
-              playlist: playlist,
-              videos: [], // Empty array - videos loaded on expand
-              videoCount: videoIdCount,
-              isCollapsed: true
-            });
-          }
-          continue;
-        }
-
-        // Get videos for this playlist (only when expanded or searching)
-        let playlistVideos = (playlist.videoIds || [])
-          .map(id => this.videoMap.get(id))
-          .filter(v => v !== undefined);
-
-        if (this.searchQuery) {
-          playlistVideos = playlistVideos.filter(v =>
-            v.titleLowercase.includes(this.searchQuery) ||
-            v.descriptionLowercase.includes(this.searchQuery)
-          );
-        }
-
-        if (playlistVideos.length > 0) {
-          if (!categoryGroups[category]) {
-            categoryGroups[category] = [];
-          }
-
-          // Only sort videos if playlist is expanded (sorting is expensive)
-          categoryGroups[category].push({
-            playlist: playlist,
-            videos: isCollapsed ? playlistVideos : this.sortVideos(playlistVideos),
-            videoCount: playlistVideos.length,
-            isCollapsed: isCollapsed
-          });
-        }
-      }
-
-      // Convert to array format with category headers
-      // (playlists are pre-sorted by category and title during loadData)
-      const result = [];
-      for (const category of this.categories) {
-        if (categoryGroups[category]) {
-          result.push({
-            categoryName: category,
-            playlists: categoryGroups[category]
-          });
-        }
-      }
-
-      return result;
+    get isAllContentTypesSelected() {
+      return (
+        this.visibleContentTypes.video &&
+        this.visibleContentTypes.lecture &&
+        this.visibleContentTypes.podcast &&
+        this.visibleContentTypes.synaxarion
+      );
     },
 
-    get sortedPlaylists() {
-      return [...this.playlists].sort((a, b) => a.title.localeCompare(b.title));
-    },
-
-    get totalUnfilteredVideos() {
-      // Return 0 if videoMap not initialized yet
-      if (!this.videoMap) return 0;
-
-      // Count unique videos across all playlists without any filters
-      const uniqueVideoIds = new Set();
-
-      for (const playlist of this.playlists) {
-        (playlist.videoIds || []).forEach(id => {
-          if (this.videoMap.has(id)) {
-            uniqueVideoIds.add(id);
-          }
-        });
-      }
-
-      return uniqueVideoIds.size;
-    },
-
-    get totalVideos() {
-      // Fast path: no filters active, return total count
-      if (!this.searchQuery && !this.selectedPlaylist && !this.selectedCategory) {
-        return this.totalUnfilteredVideos;
-      }
-
-      // Fast path: only category filter (no search), count from filtered playlists
-      if (!this.searchQuery && !this.selectedPlaylist && this.selectedCategory) {
-        const uniqueVideoIds = new Set();
-        for (const playlist of this.playlists) {
-          if ((playlist.category || 'Other') === this.selectedCategory) {
-            for (const videoId of (playlist.videoIds || [])) {
-              if (this.videoMap.has(videoId)) {
-                uniqueVideoIds.add(videoId);
-              }
-            }
-          }
-        }
-        return uniqueVideoIds.size;
-      }
-
-      // Slow path: search or playlist filter active, count from computed videos
-      const uniqueVideoIds = new Set();
-      this.playlistsWithVideos.forEach(categoryGroup => {
-        categoryGroup.playlists.forEach(playlistGroup => {
-          playlistGroup.videos.forEach(video => {
-            uniqueVideoIds.add(video.id);
-          });
-        });
-      });
-      // Ensure filtered count never exceeds total count
-      return Math.min(uniqueVideoIds.size, this.totalUnfilteredVideos);
+    get isDefaultContentTypesSelected() {
+      return (
+        this.visibleContentTypes.video &&
+        this.visibleContentTypes.lecture &&
+        this.visibleContentTypes.podcast &&
+        this.visibleContentTypes.synaxarion
+      );
     },
 
     get hasActiveFilters() {
-      return this.searchQuery.trim() !== '' || this.selectedPlaylist !== '' || this.selectedCategory !== '';
+      return (
+        this.searchQuery.trim() !== "" ||
+        this.selectedCollection !== "" ||
+        !this.isDefaultContentTypesSelected
+      );
     },
 
-    get allFilteredVideos() {
-      let filtered = this.videos;
+    get totalUnfilteredItems() {
+      return this.items.length;
+    },
+
+    get allFilteredItems() {
+      let filtered = this.items.filter((item) =>
+        this.isContentTypeVisible(item.contentType, item),
+      );
 
       if (this.searchQuery) {
-        filtered = filtered.filter(v =>
-          v.titleLowercase.includes(this.searchQuery) ||
-          v.descriptionLowercase.includes(this.searchQuery)
+        filtered = filtered.filter(
+          (item) =>
+            item.titleLowercase.includes(this.searchQuery) ||
+            item.descriptionLowercase.includes(this.searchQuery) ||
+            item.searchText.includes(this.searchQuery),
         );
       }
 
-      if (this.selectedPlaylist) {
-        const playlist = this.playlists.find(p => p.id === this.selectedPlaylist);
-        if (playlist && playlist.videoIds) {
-          const videoIdSet = new Set(playlist.videoIds);
-          filtered = filtered.filter(v => videoIdSet.has(v.id));
-        } else {
-          filtered = [];
-        }
+      if (this.selectedCollection) {
+        filtered = filtered.filter((item) =>
+          (item.parentCollectionIds || []).includes(this.selectedCollection),
+        );
       }
 
-      return this.sortVideos(filtered);
+      return this.sortItems(filtered);
     },
 
-    get paginatedVideos() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.allFilteredVideos.slice(start, end);
+    get totalItems() {
+      return this.allFilteredItems.length;
     },
 
-    get totalPages() {
-      return Math.ceil(this.allFilteredVideos.length / this.itemsPerPage);
+    get contentTypeCounts() {
+      const counts = { video: 0, lecture: 0, podcast: 0, synaxarion: 0 };
+      for (const item of this.items) {
+        if (item.isSynaxarion) counts.synaxarion += 1;
+        if (item.contentType === "video") counts.video += 1;
+        if (item.contentType === "lecture") counts.lecture += 1;
+        if (item.contentType === "podcast") counts.podcast += 1;
+      }
+      return counts;
+    },
+
+    get collectionsWithItems() {
+      if (!this.collectionItemMap) return [];
+
+      const majorGroups = {};
+
+      for (const collection of this.sortedCollections) {
+        if (this.selectedCollection && this.selectedCollection !== collection.id) continue;
+
+        const majorCollection = collection.majorCollection || "Other";
+
+        const isCollapsed = this.collapsedCollections[collection.id] === true;
+        let collectionItems = this.collectionItemMap.get(collection.id) || [];
+        collectionItems = collectionItems.filter((item) =>
+          this.isContentTypeVisible(item.contentType, item),
+        );
+
+        if (this.searchQuery) {
+          collectionItems = collectionItems.filter(
+            (item) =>
+              item.titleLowercase.includes(this.searchQuery) ||
+              item.descriptionLowercase.includes(this.searchQuery) ||
+              item.searchText.includes(this.searchQuery),
+          );
+        }
+
+        if (collectionItems.length === 0) continue;
+
+        if (!majorGroups[majorCollection]) majorGroups[majorCollection] = [];
+
+        majorGroups[majorCollection].push({
+          collection,
+          items: this.sortItems(collectionItems),
+          itemCount: collectionItems.length,
+          isCollapsed,
+        });
+      }
+
+      const result = [];
+      for (const major of this.majorCollections) {
+        if (!majorGroups[major]) continue;
+        const collections = majorGroups[major];
+        const totalItemCount = collections.reduce((sum, group) => sum + group.itemCount, 0);
+        result.push({
+          majorCollection: major,
+          collections,
+          totalItemCount,
+        });
+      }
+      return result;
     },
 
     async init() {
       await this.loadData();
 
-      // Debounce search input (300ms delay)
-      this.$watch('searchQueryInput', (newValue) => {
+      this.$watch("searchQueryInput", (newValue) => {
         clearTimeout(this.searchDebounceTimer);
         this.searchDebounceTimer = setTimeout(() => {
           this.searchQuery = newValue.toLowerCase();
           this.currentPage = 1;
+          this.resetCollectionPages();
         }, 300);
       });
 
-      this.$watch('selectedPlaylist', () => { this.currentPage = 1; });
-      this.$watch('selectedCategory', () => { this.currentPage = 1; });
-      this.$watch('sortBy', () => { this.currentPage = 1; });
-    },
-
-    toggleLayout() {
-      this.layoutMode = this.layoutMode === 'list' ? 'grid' : 'list';
-      this.currentPage = 1;
+      this.$watch("selectedCollection", () => {
+        this.currentPage = 1;
+        this.resetCollectionPages();
+      });
+      this.$watch("sortBy", () => {
+        this.currentPage = 1;
+        this.resetCollectionPages();
+      });
     },
 
     async loadData() {
@@ -239,173 +191,219 @@ function patristicNectarWidget() {
 
       try {
         const baseUrl = WIDGET_CONFIG.DATA_BASE_URL;
-
-        // Fetch all three JSON files in parallel
-        const [playlistsRes, videosRes, metadataRes] = await Promise.all([
-          fetch(`${baseUrl}/playlists.json`),
-          fetch(`${baseUrl}/videos.json`),
-          fetch(`${baseUrl}/metadata.json`)
+        const [collectionsRes, itemsRes, metadataRes] = await Promise.all([
+          fetch(`${baseUrl}/index-collections.json`),
+          fetch(`${baseUrl}/index-items.json`),
+          fetch(`${baseUrl}/index-metadata.json`),
         ]);
 
-        if (!playlistsRes.ok || !videosRes.ok) {
-          throw new Error('Failed to load video data');
+        if (!collectionsRes.ok || !itemsRes.ok) {
+          throw new Error("Failed to load index data");
         }
 
-        this.playlists = await playlistsRes.json();
+        this.collections = await collectionsRes.json();
+        this.items = await itemsRes.json();
 
-        // Pre-sort playlists by category then title (done once during load)
-        this.playlists.sort((a, b) => {
-          const catA = a.category || 'Other';
-          const catB = b.category || 'Other';
-          if (catA === 'Other' && catB !== 'Other') return 1;
-          if (catB === 'Other' && catA !== 'Other') return -1;
-          if (catA !== catB) return catA.localeCompare(catB);
-          return a.title.localeCompare(b.title);
-        });
-
-        // Cache unique categories (done once during load)
-        const categorySet = new Set();
-        for (const playlist of this.playlists) {
-          categorySet.add(playlist.category || 'Other');
-        }
-        this._cachedCategories = Array.from(categorySet).sort((a, b) => {
-          if (a === 'Other') return 1;
-          if (b === 'Other') return -1;
-          return a.localeCompare(b);
-        });
-
-        this.videos = await videosRes.json();
-
-        // Pre-normalize video data for faster searching and sorting
-        this.videos = this.videos.map(v => ({
-          ...v,
-          titleLowercase: v.title.toLowerCase(),
-          descriptionLowercase: (v.description || '').toLowerCase(),
-          publishedTimestamp: new Date(v.publishedAt).getTime()
+        this.collections = this.collections.map((collection) => ({
+          ...collection,
+          majorCollection: collection.majorCollection || "Other",
         }));
 
-        // Build video map for O(1) lookups (done once during load)
-        this.videoMap = new Map(this.videos.map(v => [v.id, v]));
+        this.items = this.items.map((item) => {
+          const publishedTimestamp = item.publishedAt
+            ? new Date(item.publishedAt).getTime()
+            : 0;
+          return {
+            ...item,
+            titleLowercase: (item.title || "").toLowerCase(),
+            descriptionLowercase: (item.description || "").toLowerCase(),
+            searchText: (item.searchText || "").toLowerCase(),
+            parentCollectionIds: item.parentCollectionIds || [],
+            isSynaxarion:
+              String(item.majorCollection || "").toLowerCase() === "synaxarion" ||
+              (item.majorCollections || []).some(
+                (entry) => String(entry).toLowerCase() === "synaxarion",
+              ),
+            publishedTimestamp,
+          };
+        });
 
-        // Load metadata (optional, won't fail if missing)
+        this.collectionItemMap = new Map();
+        for (const item of this.items) {
+          for (const collectionId of item.parentCollectionIds) {
+            if (!this.collectionItemMap.has(collectionId)) {
+              this.collectionItemMap.set(collectionId, []);
+            }
+            this.collectionItemMap.get(collectionId).push(item);
+          }
+        }
+
         if (metadataRes.ok) {
           const metadata = await metadataRes.json();
           this.lastUpdated = metadata.timestamp;
         }
 
-        // Initialize all playlists as collapsed and at page 1
-        this.collapsedPlaylists = {};
-        this.playlistPages = {};
-        this.playlists.forEach(playlist => {
-          this.collapsedPlaylists[playlist.id] = true;
-          this.playlistPages[playlist.id] = 1;
+        this.collapsedCollections = {};
+        this.collapsedMajorCollections = {};
+        this.majorCollections.forEach((major) => {
+          this.collapsedMajorCollections[major] = true;
+        });
+        this.collectionPages = {};
+        this.sortedCollections.forEach((collection) => {
+          this.collapsedCollections[collection.id] = true;
+          this.collectionPages[collection.id] = 1;
         });
       } catch (err) {
-        this.error = err.message || 'Failed to load videos. Please try again later.';
-        console.error('Widget error:', err);
+        this.error = err.message || "Failed to load index data.";
+        console.error("Widget error:", err);
       } finally {
         this.loading = false;
       }
     },
 
-    togglePlaylist(playlistId) {
-      this.collapsedPlaylists[playlistId] = !this.collapsedPlaylists[playlistId];
-      // Reset to page 1 when toggling
-      this.playlistPages[playlistId] = 1;
+    resetCollectionPages() {
+      Object.keys(this.collectionPages).forEach((id) => {
+        this.collectionPages[id] = 1;
+      });
+    },
+
+    isContentTypeVisible(contentType, item = null) {
+      if (item?.isSynaxarion) return this.visibleContentTypes.synaxarion;
+      if (!contentType) return true;
+      if (contentType === "video") return this.visibleContentTypes.video;
+      if (contentType === "lecture") return this.visibleContentTypes.lecture;
+      if (contentType === "podcast") return this.visibleContentTypes.podcast;
+      return true;
+    },
+
+    toggleContentType(contentType) {
+      const selectedCount = Object.values(this.visibleContentTypes).filter(Boolean).length;
+      if (this.visibleContentTypes[contentType] && selectedCount === 1) {
+        return;
+      }
+      this.visibleContentTypes[contentType] = !this.visibleContentTypes[contentType];
+      this.currentPage = 1;
+      this.resetCollectionPages();
+    },
+
+    selectAllContentTypes() {
+      this.visibleContentTypes.video = true;
+      this.visibleContentTypes.lecture = true;
+      this.visibleContentTypes.podcast = true;
+      this.visibleContentTypes.synaxarion = true;
+      this.currentPage = 1;
+      this.resetCollectionPages();
+    },
+
+    toggleLayout() {
+      this.layoutMode = this.layoutMode === "list" ? "grid" : "list";
+      this.currentPage = 1;
+      this.resetCollectionPages();
+    },
+
+    isMajorCollapsed(majorCollection) {
+      return this.collapsedMajorCollections[majorCollection] === true;
+    },
+
+    toggleMajorCollection(majorCollection) {
+      this.collapsedMajorCollections[majorCollection] =
+        !this.collapsedMajorCollections[majorCollection];
+    },
+
+    toggleCollection(collectionId) {
+      this.collapsedCollections[collectionId] = !this.collapsedCollections[collectionId];
+      this.collectionPages[collectionId] = 1;
     },
 
     expandAll() {
-      Object.keys(this.collapsedPlaylists).forEach(id => {
-        this.collapsedPlaylists[id] = false;
+      Object.keys(this.collapsedMajorCollections).forEach((major) => {
+        this.collapsedMajorCollections[major] = false;
+      });
+      Object.keys(this.collapsedCollections).forEach((id) => {
+        this.collapsedCollections[id] = false;
       });
     },
 
     collapseAll() {
-      Object.keys(this.collapsedPlaylists).forEach(id => {
-        this.collapsedPlaylists[id] = true;
+      Object.keys(this.collapsedMajorCollections).forEach((major) => {
+        this.collapsedMajorCollections[major] = true;
+      });
+      Object.keys(this.collapsedCollections).forEach((id) => {
+        this.collapsedCollections[id] = true;
       });
     },
 
-    sortVideos(videos) {
-      const sorted = [...videos];
+    sortItems(items) {
+      const sorted = [...items];
       switch (this.sortBy) {
-        case 'date-desc':
+        case "date-desc":
           return sorted.sort((a, b) => b.publishedTimestamp - a.publishedTimestamp);
-        case 'date-asc':
+        case "date-asc":
           return sorted.sort((a, b) => a.publishedTimestamp - b.publishedTimestamp);
-        case 'title-asc':
+        case "title-asc":
           return sorted.sort((a, b) => a.title.localeCompare(b.title));
-        case 'title-desc':
+        case "title-desc":
           return sorted.sort((a, b) => b.title.localeCompare(a.title));
-        case 'views-desc':
+        case "views-desc":
           return sorted.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
-        case 'likes-desc':
+        case "likes-desc":
           return sorted.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
-        case 'duration-desc':
-          return sorted.sort((a, b) => this.parseDuration(b.duration) - this.parseDuration(a.duration));
-        case 'duration-asc':
-          return sorted.sort((a, b) => this.parseDuration(a.duration) - this.parseDuration(b.duration));
+        case "duration-desc":
+          return sorted.sort((a, b) => (b.durationSeconds || 0) - (a.durationSeconds || 0));
+        case "duration-asc":
+          return sorted.sort((a, b) => (a.durationSeconds || 0) - (b.durationSeconds || 0));
         default:
           return sorted;
       }
     },
 
-    parseDuration(duration) {
-      const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-      if (!match) return 0;
-      const hours = parseInt(match[1] || 0);
-      const minutes = parseInt(match[2] || 0);
-      const seconds = parseInt(match[3] || 0);
-      return hours * 3600 + minutes * 60 + seconds;
-    },
-
     formatDate(dateString) {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+      if (!dateString) return "Unknown date";
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     },
 
     formatViews(views) {
-      if (views >= 1000000) return (views / 1000000).toFixed(1) + 'M';
-      if (views >= 1000) return (views / 1000).toFixed(1) + 'K';
-      return views?.toString() || '0';
+      if (views >= 1000000) return (views / 1000000).toFixed(1) + "M";
+      if (views >= 1000) return (views / 1000).toFixed(1) + "K";
+      return views?.toString() || "0";
     },
 
-    // Playlist pagination methods
-    getPlaylistPage(playlistId) {
-      return this.playlistPages[playlistId] || 1;
+    getCollectionPage(collectionId) {
+      return this.collectionPages[collectionId] || 1;
     },
 
-    setPlaylistPage(playlistId, page) {
-      this.playlistPages[playlistId] = page;
+    setCollectionPage(collectionId, page) {
+      this.collectionPages[collectionId] = page;
     },
 
-    getPlaylistTotalPages(videoCount) {
-      return Math.ceil(videoCount / this.gridItemsPerPage);
+    getCollectionTotalPages(itemCount) {
+      return Math.ceil(itemCount / this.gridItemsPerPage);
     },
 
-    getPaginatedVideos(videos, playlistId) {
-      const page = this.getPlaylistPage(playlistId);
+    getPaginatedItems(items, collectionId) {
+      const page = this.getCollectionPage(collectionId);
       const start = (page - 1) * this.gridItemsPerPage;
       const end = start + this.gridItemsPerPage;
-      return videos.slice(start, end);
+      return items.slice(start, end);
     },
 
-    nextPlaylistPage(playlistId, totalPages) {
-      const currentPage = this.getPlaylistPage(playlistId);
+    nextCollectionPage(collectionId, totalPages) {
+      const currentPage = this.getCollectionPage(collectionId);
       if (currentPage < totalPages) {
-        this.setPlaylistPage(playlistId, currentPage + 1);
+        this.setCollectionPage(collectionId, currentPage + 1);
       }
     },
 
-    prevPlaylistPage(playlistId) {
-      const currentPage = this.getPlaylistPage(playlistId);
+    prevCollectionPage(collectionId) {
+      const currentPage = this.getCollectionPage(collectionId);
       if (currentPage > 1) {
-        this.setPlaylistPage(playlistId, currentPage - 1);
+        this.setCollectionPage(collectionId, currentPage - 1);
       }
-    }
+    },
   };
 }
 

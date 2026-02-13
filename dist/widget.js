@@ -14,8 +14,16 @@
   var flushing = false;
   var queue = [];
   var lastFlushedIndex = -1;
+  var transactionActive = false;
   function scheduler(callback) {
     queueJob(callback);
+  }
+  function startTransaction() {
+    transactionActive = true;
+  }
+  function commitTransaction() {
+    transactionActive = false;
+    queueFlush();
   }
   function queueJob(job) {
     if (!queue.includes(job))
@@ -29,6 +37,8 @@
   }
   function queueFlush() {
     if (!flushing && !flushPending) {
+      if (transactionActive)
+        return;
       flushPending = true;
       queueMicrotask(flushJobs);
     }
@@ -102,16 +112,26 @@
       let value = getter();
       JSON.stringify(value);
       if (!firstTime) {
-        queueMicrotask(() => {
-          callback(value, oldValue);
-          oldValue = value;
-        });
-      } else {
-        oldValue = value;
+        if (typeof value === "object" || value !== oldValue) {
+          let previousValue = oldValue;
+          queueMicrotask(() => {
+            callback(value, previousValue);
+          });
+        }
       }
+      oldValue = value;
       firstTime = false;
     });
     return () => release(effectReference);
+  }
+  async function transaction(callback) {
+    startTransaction();
+    try {
+      await callback();
+      await Promise.resolve();
+    } finally {
+      commitTransaction();
+    }
   }
 
   // packages/alpinejs/src/mutation.js
@@ -479,6 +499,10 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
   function setEvaluator(newEvaluator) {
     theEvaluatorFunction = newEvaluator;
   }
+  var theRawEvaluatorFunction;
+  function setRawEvaluator(newEvaluator) {
+    theRawEvaluatorFunction = newEvaluator;
+  }
   function normalEvaluator(el, expression) {
     let overriddenMagics = {};
     injectMagics(overriddenMagics, el);
@@ -489,6 +513,10 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
   function generateEvaluatorFromFunction(dataStack, func) {
     return (receiver = () => {
     }, { scope: scope2 = {}, params = [], context } = {}) => {
+      if (!shouldAutoEvaluateFunctions) {
+        runIfTypeOfFunction(receiver, func, mergeProxies([scope2, ...dataStack]), params);
+        return;
+      }
       let result = func.apply(mergeProxies([scope2, ...dataStack]), params);
       runIfTypeOfFunction(receiver, result);
     };
@@ -552,6 +580,38 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
       value.then((i) => receiver(i));
     } else {
       receiver(value);
+    }
+  }
+  function evaluateRaw(...args) {
+    return theRawEvaluatorFunction(...args);
+  }
+  function normalRawEvaluator(el, expression, extras = {}) {
+    let overriddenMagics = {};
+    injectMagics(overriddenMagics, el);
+    let dataStack = [overriddenMagics, ...closestDataStack(el)];
+    let scope2 = mergeProxies([extras.scope ?? {}, ...dataStack]);
+    let params = extras.params ?? [];
+    if (expression.includes("await")) {
+      let AsyncFunction = Object.getPrototypeOf(async function() {
+      }).constructor;
+      let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(async()=>{ ${expression} })()` : expression;
+      let func = new AsyncFunction(
+        ["scope"],
+        `with (scope) { let __result = ${rightSideSafeExpression}; return __result }`
+      );
+      let result = func.call(extras.context, scope2);
+      return result;
+    } else {
+      let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(()=>{ ${expression} })()` : expression;
+      let func = new Function(
+        ["scope"],
+        `with (scope) { let __result = ${rightSideSafeExpression}; return __result }`
+      );
+      let result = func.call(extras.context, scope2);
+      if (typeof result === "function" && shouldAutoEvaluateFunctions) {
+        return result.apply(scope2, params);
+      }
+      return result;
     }
   }
 
@@ -683,6 +743,8 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
   var alpineAttributeRegex = () => new RegExp(`^${prefixAsString}([^:^.]+)\\b`);
   function toParsedDirectives(transformedAttributeMap, originalAttributeOverride) {
     return ({ name, value }) => {
+      if (name === value)
+        value = "";
       let typeMatch = name.match(alpineAttributeRegex());
       let valueMatch = name.match(/:([a-zA-Z0-9\-_:]+)/);
       let modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || [];
@@ -808,6 +870,9 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
       return el;
     if (el._x_teleportBack)
       el = el._x_teleportBack;
+    if (el.parentNode instanceof ShadowRoot) {
+      return findClosest(el.parentNode.host, callback);
+    }
     if (!el.parentElement)
       return;
     return findClosest(el.parentElement, callback);
@@ -1673,7 +1738,10 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
     get raw() {
       return raw;
     },
-    version: "3.15.2",
+    get transaction() {
+      return transaction;
+    },
+    version: "3.15.8",
     flushAndStopDeferringMutations,
     dontAutoEvaluateFunctions,
     disableEffectScheduling,
@@ -1694,7 +1762,10 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
     mapAttributes,
     evaluateLater,
     interceptInit,
+    initInterceptors,
+    injectMagics,
     setEvaluator,
+    setRawEvaluator,
     mergeProxies,
     extractProp,
     findClosest,
@@ -1713,6 +1784,7 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
     throttle,
     debounce,
     evaluate,
+    evaluateRaw,
     initTree,
     nextTick,
     prefixed: prefix,
@@ -2720,6 +2792,14 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
       handler4 = wrapHandler(handler4, (next, e) => {
         e.target === el && next(e);
       });
+    if (event === "submit") {
+      handler4 = wrapHandler(handler4, (next, e) => {
+        if (e.target._x_pendingModelUpdates) {
+          e.target._x_pendingModelUpdates.forEach((fn) => fn());
+        }
+        next(e);
+      });
+    }
     if (isKeyEvent(event) || isClickEvent(event)) {
       handler4 = wrapHandler(handler4, (next, e) => {
         if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
@@ -2757,7 +2837,7 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
   }
   function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
     let keyModifiers = modifiers.filter((i) => {
-      return !["window", "document", "prevent", "stop", "once", "capture", "self", "away", "outside", "passive", "preserve-scroll"].includes(i);
+      return !["window", "document", "prevent", "stop", "once", "capture", "self", "away", "outside", "passive", "preserve-scroll", "blur", "change", "lazy"].includes(i);
     });
     if (keyModifiers.includes("debounce")) {
       let debounceIndex = keyModifiers.indexOf("debounce");
@@ -2856,11 +2936,43 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
           el.setAttribute("name", expression);
       });
     }
-    let event = el.tagName.toLowerCase() === "select" || ["checkbox", "radio"].includes(el.type) || modifiers.includes("lazy") ? "change" : "input";
-    let removeListener = isCloning ? () => {
-    } : on(el, event, modifiers, (e) => {
-      setValue(getInputValue(el, modifiers, e, getValue()));
-    });
+    let hasChangeModifier = modifiers.includes("change") || modifiers.includes("lazy");
+    let hasBlurModifier = modifiers.includes("blur");
+    let hasEnterModifier = modifiers.includes("enter");
+    let hasExplicitEventModifiers = hasChangeModifier || hasBlurModifier || hasEnterModifier;
+    let removeListener;
+    if (isCloning) {
+      removeListener = () => {
+      };
+    } else if (hasExplicitEventModifiers) {
+      let listeners = [];
+      let syncValue = (e) => setValue(getInputValue(el, modifiers, e, getValue()));
+      if (hasChangeModifier) {
+        listeners.push(on(el, "change", modifiers, syncValue));
+      }
+      if (hasBlurModifier) {
+        listeners.push(on(el, "blur", modifiers, syncValue));
+        if (el.form) {
+          let syncCallback = () => syncValue({ target: el });
+          if (!el.form._x_pendingModelUpdates)
+            el.form._x_pendingModelUpdates = [];
+          el.form._x_pendingModelUpdates.push(syncCallback);
+          cleanup2(() => el.form._x_pendingModelUpdates.splice(el.form._x_pendingModelUpdates.indexOf(syncCallback), 1));
+        }
+      }
+      if (hasEnterModifier) {
+        listeners.push(on(el, "keydown", modifiers, (e) => {
+          if (e.key === "Enter")
+            syncValue(e);
+        }));
+      }
+      removeListener = () => listeners.forEach((remove) => remove());
+    } else {
+      let event = el.tagName.toLowerCase() === "select" || ["checkbox", "radio"].includes(el.type) ? "change" : "input";
+      removeListener = on(el, event, modifiers, (e) => {
+        setValue(getInputValue(el, modifiers, e, getValue()));
+      });
+    }
     if (modifiers.includes("fill")) {
       if ([void 0, null, ""].includes(getValue()) || isCheckbox(el) && Array.isArray(getValue()) || el.tagName.toLowerCase() === "select" && el.multiple) {
         setValue(
@@ -3415,6 +3527,7 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
 
   // packages/alpinejs/src/index.js
   alpine_default.setEvaluator(normalEvaluator);
+  alpine_default.setRawEvaluator(normalRawEvaluator);
   alpine_default.setReactivityEngine({ reactive: reactive2, effect: effect2, release: stop, raw: toRaw });
   var src_default = alpine_default;
 
@@ -3430,7 +3543,7 @@ ${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
   const WIDGET_CONFIG = {
   YOUTUBE_CHANNEL_ID: "UCz72pwrQRTXibU14NmHep8w",
   YOUTUBE_API_BASE: "https://www.googleapis.com/youtube/v3",
-  DATA_BASE_URL: window.location.hostname === 'localhost' || window.location.protocol === 'file:'
+  DATA_BASE_URL: ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.protocol === 'file:'
     ? './data'
     : 'https://raw.githubusercontent.com/patristic-nectar/youtube-index/main/data',
   DEFAULT_ITEMS_PER_PAGE: 20,
@@ -3668,235 +3781,187 @@ function applySquarespaceColors() {
   return {
     loading: false,
     error: null,
-    playlists: [],
-    videos: [],
-    videoMap: null,
+    collections: [],
+    items: [],
+    collectionItemMap: null,
     lastUpdated: null,
-    searchQuery: '',
-    searchQueryInput: '',
+    searchQuery: "",
+    searchQueryInput: "",
     searchDebounceTimer: null,
-    selectedPlaylist: '',
-    selectedCategory: '',
+    selectedCollection: "",
     sortBy: WIDGET_CONFIG.DEFAULT_SORT,
-    collapsedPlaylists: {},
-    layoutMode: 'list',
-    _cachedCategories: null,
+    collapsedMajorCollections: {},
+    collapsedCollections: {},
+    layoutMode: "list",
     currentPage: 1,
     itemsPerPage: WIDGET_CONFIG.DEFAULT_ITEMS_PER_PAGE,
-    gridItemsPerPage: 20, // Items per page for grid view (calculated dynamically)
-    playlistPages: {}, // playlistId -> current page number for each playlist
+    gridItemsPerPage: 20,
+    collectionPages: {},
+    visibleContentTypes: {
+      video: true,
+      lecture: true,
+      podcast: true,
+      synaxarion: true,
+    },
 
-    get categories() {
-      // Return cached categories if available (computed once during loadData)
-      if (this._cachedCategories) {
-        return this._cachedCategories;
+    get sortedCollections() {
+      return this.collections
+        .filter((collection) => collection.type === "collection")
+        .sort((a, b) => a.title.localeCompare(b.title));
+    },
+
+    get majorCollections() {
+      const set = new Set();
+      for (const collection of this.collections) {
+        if (collection.type !== "collection") continue;
+        set.add(collection.majorCollection || "Other");
       }
-      // Fallback: compute if not yet cached
-      const categorySet = new Set();
-      for (const playlist of this.playlists) {
-        categorySet.add(playlist.category || 'Other');
-      }
-      return Array.from(categorySet).sort((a, b) => {
-        if (a === 'Other') return 1;
-        if (b === 'Other') return -1;
+      return Array.from(set).sort((a, b) => {
+        if (a === "Other") return 1;
+        if (b === "Other") return -1;
         return a.localeCompare(b);
       });
     },
 
-    get playlistsWithVideos() {
-      // Return empty if videoMap not initialized yet
-      if (!this.videoMap) return [];
-
-      const categoryGroups = {};
-
-      // Parse playlists and group by category
-      for (const playlist of this.playlists) {
-        // Skip if filtering by playlist and this isn't the selected one
-        if (this.selectedPlaylist && this.selectedPlaylist !== playlist.id) {
-          continue;
-        }
-
-        // Skip if filtering by category and this playlist doesn't match
-        const playlistCategory = playlist.category || 'Other';
-        if (this.selectedCategory && this.selectedCategory !== playlistCategory) {
-          continue;
-        }
-
-        const isCollapsed = this.collapsedPlaylists[playlist.id] === true;
-        const category = playlist.category || 'Other';
-
-        // Optimization: skip video array building for collapsed playlists without search
-        if (isCollapsed && !this.searchQuery) {
-          const videoIdCount = (playlist.videoIds || []).length;
-          if (videoIdCount > 0) {
-            if (!categoryGroups[category]) {
-              categoryGroups[category] = [];
-            }
-            categoryGroups[category].push({
-              playlist: playlist,
-              videos: [], // Empty array - videos loaded on expand
-              videoCount: videoIdCount,
-              isCollapsed: true
-            });
-          }
-          continue;
-        }
-
-        // Get videos for this playlist (only when expanded or searching)
-        let playlistVideos = (playlist.videoIds || [])
-          .map(id => this.videoMap.get(id))
-          .filter(v => v !== undefined);
-
-        if (this.searchQuery) {
-          playlistVideos = playlistVideos.filter(v =>
-            v.titleLowercase.includes(this.searchQuery) ||
-            v.descriptionLowercase.includes(this.searchQuery)
-          );
-        }
-
-        if (playlistVideos.length > 0) {
-          if (!categoryGroups[category]) {
-            categoryGroups[category] = [];
-          }
-
-          // Only sort videos if playlist is expanded (sorting is expensive)
-          categoryGroups[category].push({
-            playlist: playlist,
-            videos: isCollapsed ? playlistVideos : this.sortVideos(playlistVideos),
-            videoCount: playlistVideos.length,
-            isCollapsed: isCollapsed
-          });
-        }
-      }
-
-      // Convert to array format with category headers
-      // (playlists are pre-sorted by category and title during loadData)
-      const result = [];
-      for (const category of this.categories) {
-        if (categoryGroups[category]) {
-          result.push({
-            categoryName: category,
-            playlists: categoryGroups[category]
-          });
-        }
-      }
-
-      return result;
+    get isAllContentTypesSelected() {
+      return (
+        this.visibleContentTypes.video &&
+        this.visibleContentTypes.lecture &&
+        this.visibleContentTypes.podcast &&
+        this.visibleContentTypes.synaxarion
+      );
     },
 
-    get sortedPlaylists() {
-      return [...this.playlists].sort((a, b) => a.title.localeCompare(b.title));
-    },
-
-    get totalUnfilteredVideos() {
-      // Return 0 if videoMap not initialized yet
-      if (!this.videoMap) return 0;
-
-      // Count unique videos across all playlists without any filters
-      const uniqueVideoIds = new Set();
-
-      for (const playlist of this.playlists) {
-        (playlist.videoIds || []).forEach(id => {
-          if (this.videoMap.has(id)) {
-            uniqueVideoIds.add(id);
-          }
-        });
-      }
-
-      return uniqueVideoIds.size;
-    },
-
-    get totalVideos() {
-      // Fast path: no filters active, return total count
-      if (!this.searchQuery && !this.selectedPlaylist && !this.selectedCategory) {
-        return this.totalUnfilteredVideos;
-      }
-
-      // Fast path: only category filter (no search), count from filtered playlists
-      if (!this.searchQuery && !this.selectedPlaylist && this.selectedCategory) {
-        const uniqueVideoIds = new Set();
-        for (const playlist of this.playlists) {
-          if ((playlist.category || 'Other') === this.selectedCategory) {
-            for (const videoId of (playlist.videoIds || [])) {
-              if (this.videoMap.has(videoId)) {
-                uniqueVideoIds.add(videoId);
-              }
-            }
-          }
-        }
-        return uniqueVideoIds.size;
-      }
-
-      // Slow path: search or playlist filter active, count from computed videos
-      const uniqueVideoIds = new Set();
-      this.playlistsWithVideos.forEach(categoryGroup => {
-        categoryGroup.playlists.forEach(playlistGroup => {
-          playlistGroup.videos.forEach(video => {
-            uniqueVideoIds.add(video.id);
-          });
-        });
-      });
-      // Ensure filtered count never exceeds total count
-      return Math.min(uniqueVideoIds.size, this.totalUnfilteredVideos);
+    get isDefaultContentTypesSelected() {
+      return (
+        this.visibleContentTypes.video &&
+        this.visibleContentTypes.lecture &&
+        this.visibleContentTypes.podcast &&
+        this.visibleContentTypes.synaxarion
+      );
     },
 
     get hasActiveFilters() {
-      return this.searchQuery.trim() !== '' || this.selectedPlaylist !== '' || this.selectedCategory !== '';
+      return (
+        this.searchQuery.trim() !== "" ||
+        this.selectedCollection !== "" ||
+        !this.isDefaultContentTypesSelected
+      );
     },
 
-    get allFilteredVideos() {
-      let filtered = this.videos;
+    get totalUnfilteredItems() {
+      return this.items.length;
+    },
+
+    get allFilteredItems() {
+      let filtered = this.items.filter((item) =>
+        this.isContentTypeVisible(item.contentType, item),
+      );
 
       if (this.searchQuery) {
-        filtered = filtered.filter(v =>
-          v.titleLowercase.includes(this.searchQuery) ||
-          v.descriptionLowercase.includes(this.searchQuery)
+        filtered = filtered.filter(
+          (item) =>
+            item.titleLowercase.includes(this.searchQuery) ||
+            item.descriptionLowercase.includes(this.searchQuery) ||
+            item.searchText.includes(this.searchQuery),
         );
       }
 
-      if (this.selectedPlaylist) {
-        const playlist = this.playlists.find(p => p.id === this.selectedPlaylist);
-        if (playlist && playlist.videoIds) {
-          const videoIdSet = new Set(playlist.videoIds);
-          filtered = filtered.filter(v => videoIdSet.has(v.id));
-        } else {
-          filtered = [];
-        }
+      if (this.selectedCollection) {
+        filtered = filtered.filter((item) =>
+          (item.parentCollectionIds || []).includes(this.selectedCollection),
+        );
       }
 
-      return this.sortVideos(filtered);
+      return this.sortItems(filtered);
     },
 
-    get paginatedVideos() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.allFilteredVideos.slice(start, end);
+    get totalItems() {
+      return this.allFilteredItems.length;
     },
 
-    get totalPages() {
-      return Math.ceil(this.allFilteredVideos.length / this.itemsPerPage);
+    get contentTypeCounts() {
+      const counts = { video: 0, lecture: 0, podcast: 0, synaxarion: 0 };
+      for (const item of this.items) {
+        if (item.isSynaxarion) counts.synaxarion += 1;
+        if (item.contentType === "video") counts.video += 1;
+        if (item.contentType === "lecture") counts.lecture += 1;
+        if (item.contentType === "podcast") counts.podcast += 1;
+      }
+      return counts;
+    },
+
+    get collectionsWithItems() {
+      if (!this.collectionItemMap) return [];
+
+      const majorGroups = {};
+
+      for (const collection of this.sortedCollections) {
+        if (this.selectedCollection && this.selectedCollection !== collection.id) continue;
+
+        const majorCollection = collection.majorCollection || "Other";
+
+        const isCollapsed = this.collapsedCollections[collection.id] === true;
+        let collectionItems = this.collectionItemMap.get(collection.id) || [];
+        collectionItems = collectionItems.filter((item) =>
+          this.isContentTypeVisible(item.contentType, item),
+        );
+
+        if (this.searchQuery) {
+          collectionItems = collectionItems.filter(
+            (item) =>
+              item.titleLowercase.includes(this.searchQuery) ||
+              item.descriptionLowercase.includes(this.searchQuery) ||
+              item.searchText.includes(this.searchQuery),
+          );
+        }
+
+        if (collectionItems.length === 0) continue;
+
+        if (!majorGroups[majorCollection]) majorGroups[majorCollection] = [];
+
+        majorGroups[majorCollection].push({
+          collection,
+          items: this.sortItems(collectionItems),
+          itemCount: collectionItems.length,
+          isCollapsed,
+        });
+      }
+
+      const result = [];
+      for (const major of this.majorCollections) {
+        if (!majorGroups[major]) continue;
+        const collections = majorGroups[major];
+        const totalItemCount = collections.reduce((sum, group) => sum + group.itemCount, 0);
+        result.push({
+          majorCollection: major,
+          collections,
+          totalItemCount,
+        });
+      }
+      return result;
     },
 
     async init() {
       await this.loadData();
 
-      // Debounce search input (300ms delay)
-      this.$watch('searchQueryInput', (newValue) => {
+      this.$watch("searchQueryInput", (newValue) => {
         clearTimeout(this.searchDebounceTimer);
         this.searchDebounceTimer = setTimeout(() => {
           this.searchQuery = newValue.toLowerCase();
           this.currentPage = 1;
+          this.resetCollectionPages();
         }, 300);
       });
 
-      this.$watch('selectedPlaylist', () => { this.currentPage = 1; });
-      this.$watch('selectedCategory', () => { this.currentPage = 1; });
-      this.$watch('sortBy', () => { this.currentPage = 1; });
-    },
-
-    toggleLayout() {
-      this.layoutMode = this.layoutMode === 'list' ? 'grid' : 'list';
-      this.currentPage = 1;
+      this.$watch("selectedCollection", () => {
+        this.currentPage = 1;
+        this.resetCollectionPages();
+      });
+      this.$watch("sortBy", () => {
+        this.currentPage = 1;
+        this.resetCollectionPages();
+      });
     },
 
     async loadData() {
@@ -3905,173 +3970,219 @@ function applySquarespaceColors() {
 
       try {
         const baseUrl = WIDGET_CONFIG.DATA_BASE_URL;
-
-        // Fetch all three JSON files in parallel
-        const [playlistsRes, videosRes, metadataRes] = await Promise.all([
-          fetch(`${baseUrl}/playlists.json`),
-          fetch(`${baseUrl}/videos.json`),
-          fetch(`${baseUrl}/metadata.json`)
+        const [collectionsRes, itemsRes, metadataRes] = await Promise.all([
+          fetch(`${baseUrl}/index-collections.json`),
+          fetch(`${baseUrl}/index-items.json`),
+          fetch(`${baseUrl}/index-metadata.json`),
         ]);
 
-        if (!playlistsRes.ok || !videosRes.ok) {
-          throw new Error('Failed to load video data');
+        if (!collectionsRes.ok || !itemsRes.ok) {
+          throw new Error("Failed to load index data");
         }
 
-        this.playlists = await playlistsRes.json();
+        this.collections = await collectionsRes.json();
+        this.items = await itemsRes.json();
 
-        // Pre-sort playlists by category then title (done once during load)
-        this.playlists.sort((a, b) => {
-          const catA = a.category || 'Other';
-          const catB = b.category || 'Other';
-          if (catA === 'Other' && catB !== 'Other') return 1;
-          if (catB === 'Other' && catA !== 'Other') return -1;
-          if (catA !== catB) return catA.localeCompare(catB);
-          return a.title.localeCompare(b.title);
-        });
-
-        // Cache unique categories (done once during load)
-        const categorySet = new Set();
-        for (const playlist of this.playlists) {
-          categorySet.add(playlist.category || 'Other');
-        }
-        this._cachedCategories = Array.from(categorySet).sort((a, b) => {
-          if (a === 'Other') return 1;
-          if (b === 'Other') return -1;
-          return a.localeCompare(b);
-        });
-
-        this.videos = await videosRes.json();
-
-        // Pre-normalize video data for faster searching and sorting
-        this.videos = this.videos.map(v => ({
-          ...v,
-          titleLowercase: v.title.toLowerCase(),
-          descriptionLowercase: (v.description || '').toLowerCase(),
-          publishedTimestamp: new Date(v.publishedAt).getTime()
+        this.collections = this.collections.map((collection) => ({
+          ...collection,
+          majorCollection: collection.majorCollection || "Other",
         }));
 
-        // Build video map for O(1) lookups (done once during load)
-        this.videoMap = new Map(this.videos.map(v => [v.id, v]));
+        this.items = this.items.map((item) => {
+          const publishedTimestamp = item.publishedAt
+            ? new Date(item.publishedAt).getTime()
+            : 0;
+          return {
+            ...item,
+            titleLowercase: (item.title || "").toLowerCase(),
+            descriptionLowercase: (item.description || "").toLowerCase(),
+            searchText: (item.searchText || "").toLowerCase(),
+            parentCollectionIds: item.parentCollectionIds || [],
+            isSynaxarion:
+              String(item.majorCollection || "").toLowerCase() === "synaxarion" ||
+              (item.majorCollections || []).some(
+                (entry) => String(entry).toLowerCase() === "synaxarion",
+              ),
+            publishedTimestamp,
+          };
+        });
 
-        // Load metadata (optional, won't fail if missing)
+        this.collectionItemMap = new Map();
+        for (const item of this.items) {
+          for (const collectionId of item.parentCollectionIds) {
+            if (!this.collectionItemMap.has(collectionId)) {
+              this.collectionItemMap.set(collectionId, []);
+            }
+            this.collectionItemMap.get(collectionId).push(item);
+          }
+        }
+
         if (metadataRes.ok) {
           const metadata = await metadataRes.json();
           this.lastUpdated = metadata.timestamp;
         }
 
-        // Initialize all playlists as collapsed and at page 1
-        this.collapsedPlaylists = {};
-        this.playlistPages = {};
-        this.playlists.forEach(playlist => {
-          this.collapsedPlaylists[playlist.id] = true;
-          this.playlistPages[playlist.id] = 1;
+        this.collapsedCollections = {};
+        this.collapsedMajorCollections = {};
+        this.majorCollections.forEach((major) => {
+          this.collapsedMajorCollections[major] = true;
+        });
+        this.collectionPages = {};
+        this.sortedCollections.forEach((collection) => {
+          this.collapsedCollections[collection.id] = true;
+          this.collectionPages[collection.id] = 1;
         });
       } catch (err) {
-        this.error = err.message || 'Failed to load videos. Please try again later.';
-        console.error('Widget error:', err);
+        this.error = err.message || "Failed to load index data.";
+        console.error("Widget error:", err);
       } finally {
         this.loading = false;
       }
     },
 
-    togglePlaylist(playlistId) {
-      this.collapsedPlaylists[playlistId] = !this.collapsedPlaylists[playlistId];
-      // Reset to page 1 when toggling
-      this.playlistPages[playlistId] = 1;
+    resetCollectionPages() {
+      Object.keys(this.collectionPages).forEach((id) => {
+        this.collectionPages[id] = 1;
+      });
+    },
+
+    isContentTypeVisible(contentType, item = null) {
+      if (item?.isSynaxarion) return this.visibleContentTypes.synaxarion;
+      if (!contentType) return true;
+      if (contentType === "video") return this.visibleContentTypes.video;
+      if (contentType === "lecture") return this.visibleContentTypes.lecture;
+      if (contentType === "podcast") return this.visibleContentTypes.podcast;
+      return true;
+    },
+
+    toggleContentType(contentType) {
+      const selectedCount = Object.values(this.visibleContentTypes).filter(Boolean).length;
+      if (this.visibleContentTypes[contentType] && selectedCount === 1) {
+        return;
+      }
+      this.visibleContentTypes[contentType] = !this.visibleContentTypes[contentType];
+      this.currentPage = 1;
+      this.resetCollectionPages();
+    },
+
+    selectAllContentTypes() {
+      this.visibleContentTypes.video = true;
+      this.visibleContentTypes.lecture = true;
+      this.visibleContentTypes.podcast = true;
+      this.visibleContentTypes.synaxarion = true;
+      this.currentPage = 1;
+      this.resetCollectionPages();
+    },
+
+    toggleLayout() {
+      this.layoutMode = this.layoutMode === "list" ? "grid" : "list";
+      this.currentPage = 1;
+      this.resetCollectionPages();
+    },
+
+    isMajorCollapsed(majorCollection) {
+      return this.collapsedMajorCollections[majorCollection] === true;
+    },
+
+    toggleMajorCollection(majorCollection) {
+      this.collapsedMajorCollections[majorCollection] =
+        !this.collapsedMajorCollections[majorCollection];
+    },
+
+    toggleCollection(collectionId) {
+      this.collapsedCollections[collectionId] = !this.collapsedCollections[collectionId];
+      this.collectionPages[collectionId] = 1;
     },
 
     expandAll() {
-      Object.keys(this.collapsedPlaylists).forEach(id => {
-        this.collapsedPlaylists[id] = false;
+      Object.keys(this.collapsedMajorCollections).forEach((major) => {
+        this.collapsedMajorCollections[major] = false;
+      });
+      Object.keys(this.collapsedCollections).forEach((id) => {
+        this.collapsedCollections[id] = false;
       });
     },
 
     collapseAll() {
-      Object.keys(this.collapsedPlaylists).forEach(id => {
-        this.collapsedPlaylists[id] = true;
+      Object.keys(this.collapsedMajorCollections).forEach((major) => {
+        this.collapsedMajorCollections[major] = true;
+      });
+      Object.keys(this.collapsedCollections).forEach((id) => {
+        this.collapsedCollections[id] = true;
       });
     },
 
-    sortVideos(videos) {
-      const sorted = [...videos];
+    sortItems(items) {
+      const sorted = [...items];
       switch (this.sortBy) {
-        case 'date-desc':
+        case "date-desc":
           return sorted.sort((a, b) => b.publishedTimestamp - a.publishedTimestamp);
-        case 'date-asc':
+        case "date-asc":
           return sorted.sort((a, b) => a.publishedTimestamp - b.publishedTimestamp);
-        case 'title-asc':
+        case "title-asc":
           return sorted.sort((a, b) => a.title.localeCompare(b.title));
-        case 'title-desc':
+        case "title-desc":
           return sorted.sort((a, b) => b.title.localeCompare(a.title));
-        case 'views-desc':
+        case "views-desc":
           return sorted.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
-        case 'likes-desc':
+        case "likes-desc":
           return sorted.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
-        case 'duration-desc':
-          return sorted.sort((a, b) => this.parseDuration(b.duration) - this.parseDuration(a.duration));
-        case 'duration-asc':
-          return sorted.sort((a, b) => this.parseDuration(a.duration) - this.parseDuration(b.duration));
+        case "duration-desc":
+          return sorted.sort((a, b) => (b.durationSeconds || 0) - (a.durationSeconds || 0));
+        case "duration-asc":
+          return sorted.sort((a, b) => (a.durationSeconds || 0) - (b.durationSeconds || 0));
         default:
           return sorted;
       }
     },
 
-    parseDuration(duration) {
-      const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-      if (!match) return 0;
-      const hours = parseInt(match[1] || 0);
-      const minutes = parseInt(match[2] || 0);
-      const seconds = parseInt(match[3] || 0);
-      return hours * 3600 + minutes * 60 + seconds;
-    },
-
     formatDate(dateString) {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+      if (!dateString) return "Unknown date";
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     },
 
     formatViews(views) {
-      if (views >= 1000000) return (views / 1000000).toFixed(1) + 'M';
-      if (views >= 1000) return (views / 1000).toFixed(1) + 'K';
-      return views?.toString() || '0';
+      if (views >= 1000000) return (views / 1000000).toFixed(1) + "M";
+      if (views >= 1000) return (views / 1000).toFixed(1) + "K";
+      return views?.toString() || "0";
     },
 
-    // Playlist pagination methods
-    getPlaylistPage(playlistId) {
-      return this.playlistPages[playlistId] || 1;
+    getCollectionPage(collectionId) {
+      return this.collectionPages[collectionId] || 1;
     },
 
-    setPlaylistPage(playlistId, page) {
-      this.playlistPages[playlistId] = page;
+    setCollectionPage(collectionId, page) {
+      this.collectionPages[collectionId] = page;
     },
 
-    getPlaylistTotalPages(videoCount) {
-      return Math.ceil(videoCount / this.gridItemsPerPage);
+    getCollectionTotalPages(itemCount) {
+      return Math.ceil(itemCount / this.gridItemsPerPage);
     },
 
-    getPaginatedVideos(videos, playlistId) {
-      const page = this.getPlaylistPage(playlistId);
+    getPaginatedItems(items, collectionId) {
+      const page = this.getCollectionPage(collectionId);
       const start = (page - 1) * this.gridItemsPerPage;
       const end = start + this.gridItemsPerPage;
-      return videos.slice(start, end);
+      return items.slice(start, end);
     },
 
-    nextPlaylistPage(playlistId, totalPages) {
-      const currentPage = this.getPlaylistPage(playlistId);
+    nextCollectionPage(collectionId, totalPages) {
+      const currentPage = this.getCollectionPage(collectionId);
       if (currentPage < totalPages) {
-        this.setPlaylistPage(playlistId, currentPage + 1);
+        this.setCollectionPage(collectionId, currentPage + 1);
       }
     },
 
-    prevPlaylistPage(playlistId) {
-      const currentPage = this.getPlaylistPage(playlistId);
+    prevCollectionPage(collectionId) {
+      const currentPage = this.getCollectionPage(collectionId);
       if (currentPage > 1) {
-        this.setPlaylistPage(playlistId, currentPage - 1);
+        this.setCollectionPage(collectionId, currentPage - 1);
       }
-    }
+    },
   };
 }
 
@@ -4085,7 +4196,7 @@ window.patristicNectarWidget = patristicNectarWidget;
       container.innerHTML = `<div x-data="patristicNectarWidget()" x-init="init()" class="pn-widget">
   <div x-show="loading" class="pn-loading">
     <div class="pn-spinner"></div>
-    <p>Loading videos from Patristic Nectar...</p>
+    <p>Loading content from Patristic Nectar...</p>
   </div>
 
   <div x-show="error" class="pn-error">
@@ -4094,23 +4205,30 @@ window.patristicNectarWidget = patristicNectarWidget;
 
   <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
-      <h2>Patristic Nectar Videos</h2>
-      <p class="pn-subtitle" x-text="hasActiveFilters ? \`Showing \${totalVideos} of \${totalUnfilteredVideos} videos in \${playlists.length} playlists\` : \`\${totalUnfilteredVideos} videos in \${playlists.length} playlists\`"></p>
-      <p x-show="lastUpdated" class="pn-last-updated" x-text="\`Last updated: \${formatDate(lastUpdated)}\`"></p>
+      <h2>Patristic Nectar Index</h2>
+      <p
+        class="pn-subtitle"
+        x-text="hasActiveFilters ? \`Showing \${totalItems} of \${totalUnfilteredItems} items across \${sortedCollections.length} collections\` : \`\${totalUnfilteredItems} items across \${sortedCollections.length} collections\`"
+      ></p>
+      <p
+        x-show="lastUpdated"
+        class="pn-last-updated"
+        x-text="\`Last updated: \${formatDate(lastUpdated)}\`"
+      ></p>
     </div>
 
     <div class="pn-controls">
       <input
         type="search"
         x-model="searchQueryInput"
-        placeholder="Search videos..."
+        placeholder="Search all content..."
         class="pn-search pn-input"
       >
 
-      <select x-model="selectedPlaylist" class="pn-select">
-        <option value="">All Playlists</option>
-        <template x-for="playlist in sortedPlaylists" :key="playlist.id">
-          <option :value="playlist.id" x-text="playlist.title"></option>
+      <select x-model="selectedCollection" class="pn-select">
+        <option value="">All Collections</option>
+        <template x-for="collection in sortedCollections" :key="collection.id">
+          <option :value="collection.id" x-text="collection.title"></option>
         </template>
       </select>
 
@@ -4126,31 +4244,93 @@ window.patristicNectarWidget = patristicNectarWidget;
       </select>
     </div>
 
-    <div class="pn-category-tabs" x-show="categories.length > 1">
+    <div class="pn-type-filter" role="toolbar" aria-label="Content type filter">
       <button
-        class="pn-category-tab"
-        :class="{ 'pn-active': selectedCategory === '' }"
-        @click="selectedCategory = ''"
-      >All</button>
-      <template x-for="category in categories" :key="category">
-        <button
-          class="pn-category-tab"
-          :class="{ 'pn-active': selectedCategory === category }"
-          @click="selectedCategory = category"
-          x-text="category"
-        ></button>
-      </template>
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': isAllContentTypesSelected }"
+        @click="selectAllContentTypes()"
+        :aria-pressed="isAllContentTypesSelected"
+      >
+        <span class="pn-type-pill-label">All</span>
+      </button>
+
+      <button
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': visibleContentTypes.video }"
+        @click="toggleContentType('video')"
+        :aria-pressed="visibleContentTypes.video"
+      >
+        <svg class="pn-type-pill-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path>
+          <rect x="2" y="6" width="14" height="12" rx="2"></rect>
+        </svg>
+        <span class="pn-type-pill-label">Videos</span>
+        <span class="pn-type-pill-count" x-text="contentTypeCounts.video"></span>
+      </button>
+
+      <button
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': visibleContentTypes.lecture }"
+        @click="toggleContentType('lecture')"
+        :aria-pressed="visibleContentTypes.lecture"
+      >
+        <svg class="pn-type-pill-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path>
+          <path d="M22 10v6"></path>
+          <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path>
+        </svg>
+        <span class="pn-type-pill-label">Lectures</span>
+        <span class="pn-type-pill-count" x-text="contentTypeCounts.lecture"></span>
+      </button>
+
+      <button
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': visibleContentTypes.podcast }"
+        @click="toggleContentType('podcast')"
+        :aria-pressed="visibleContentTypes.podcast"
+      >
+        <svg class="pn-type-pill-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 17a1 1 0 1 0-2 0l.5 4.5a0.5.5 0 0 0 1 0z" fill="currentColor"></path>
+          <path d="M16.85 18.58a9 9 0 1 0-9.7 0"></path>
+          <path d="M8 14a5 5 0 1 1 8 0"></path>
+          <circle cx="12" cy="11" r="1" fill="currentColor"></circle>
+        </svg>
+        <span class="pn-type-pill-label">Podcasts</span>
+        <span class="pn-type-pill-count" x-text="contentTypeCounts.podcast"></span>
+      </button>
+
+      <button
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': visibleContentTypes.synaxarion }"
+        @click="toggleContentType('synaxarion')"
+        :aria-pressed="visibleContentTypes.synaxarion"
+      >
+        <svg class="pn-type-pill-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 2v4"></path>
+          <path d="M16 2v4"></path>
+          <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+          <path d="M3 10h18"></path>
+          <path d="M8 14h.01"></path>
+          <path d="M12 14h.01"></path>
+          <path d="M16 14h.01"></path>
+          <path d="M8 18h.01"></path>
+          <path d="M12 18h.01"></path>
+          <path d="M16 18h.01"></path>
+        </svg>
+        <span class="pn-type-pill-label">Synaxarion</span>
+        <span class="pn-type-pill-count" x-text="contentTypeCounts.synaxarion"></span>
+      </button>
     </div>
 
     <div class="pn-toolbar">
       <button @click="toggleLayout()" class="pn-btn pn-btn-sm pn-layout-toggle">
-        <svg x-show="layoutMode === 'list'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-grid-icon lucide-layout-grid">
+        <svg x-show="layoutMode === 'list'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect width="7" height="7" x="3" y="3" rx="1"></rect>
           <rect width="7" height="7" x="14" y="3" rx="1"></rect>
           <rect width="7" height="7" x="14" y="14" rx="1"></rect>
           <rect width="7" height="7" x="3" y="14" rx="1"></rect>
         </svg>
-        <svg x-show="layoutMode === 'grid'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-icon lucide-list">
+        <svg x-show="layoutMode === 'grid'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 5h.01"></path>
           <path d="M3 12h.01"></path>
           <path d="M3 19h.01"></path>
@@ -4166,202 +4346,214 @@ window.patristicNectarWidget = patristicNectarWidget;
       </div>
     </div>
 
-    <div x-show="layoutMode === 'grid' && allFilteredVideos.length === 0" class="pn-empty">
-      <p>No videos found matching your search.</p>
+    <div x-show="collectionsWithItems.length === 0" class="pn-empty">
+      <p>No content found matching your filters.</p>
     </div>
 
-    <div x-show="layoutMode === 'list' && playlistsWithVideos.length === 0" class="pn-empty">
-      <p>No videos found matching your search.</p>
-    </div>
-
-    <!-- List View (Playlist-based with Categories) -->
-    <template x-if="layoutMode === 'list' && playlistsWithVideos.length > 0">
+    <template x-if="layoutMode === 'list' && collectionsWithItems.length > 0">
       <div class="pn-playlists">
-        <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
-          <div class="pn-category-group">
-            <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
+        <template x-for="majorGroup in collectionsWithItems" :key="majorGroup.majorCollection">
+          <div class="pn-major-section">
+            <button
+              class="pn-major-header"
+              @click="toggleMajorCollection(majorGroup.majorCollection)"
+              :class="{ 'pn-collapsed': isMajorCollapsed(majorGroup.majorCollection) }"
+            >
+              <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="pn-major-header-text">
+                <span class="pn-major-title" x-text="majorGroup.majorCollection"></span>
+                <span class="pn-major-count" x-text="\`\${majorGroup.collections.length} collections • \${majorGroup.totalItemCount} items\`"></span>
+              </div>
+            </button>
 
-            <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
-              <div class="pn-playlist-section">
-                <div
-                  class="pn-playlist-header"
-                  @click="togglePlaylist(group.playlist.id)"
-                  :class="{ 'pn-collapsed': group.isCollapsed }"
-                >
-                  <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <div class="pn-playlist-info">
-                    <div class="pn-playlist-title-group">
-                      <h3>
-                        <span x-text="group.playlist.title"></span>
-                        <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
-                      </h3>
-                      <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
-                    </div>
-                  </div>
-                  <a
-                    :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
-                    target="_blank"
-                    rel="noopener"
-                    class="pn-playlist-youtube-link"
-                    @click.stop
-                    title="Open playlist on YouTube"
+            <div x-show="!isMajorCollapsed(majorGroup.majorCollection)" class="pn-major-content">
+              <template x-for="group in majorGroup.collections" :key="group.collection.id">
+                <div class="pn-playlist-section">
+                  <div
+                    class="pn-playlist-header"
+                    @click="toggleCollection(group.collection.id)"
+                    :class="{ 'pn-collapsed': group.isCollapsed }"
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                  </a>
-                </div>
+                    <div class="pn-playlist-info">
+                      <div class="pn-playlist-title-group">
+                        <h3>
+                          <span x-text="group.collection.title"></span>
+                          <span class="pn-video-count" x-text="\` (\${group.itemCount} items)\`"></span>
+                        </h3>
+                        <p class="pn-playlist-description" x-show="group.collection.description" x-text="group.collection.description"></p>
+                      </div>
+                    </div>
+                    <a
+                      :href="group.collection.url"
+                      target="_blank"
+                      rel="noopener"
+                      class="pn-playlist-youtube-link"
+                      @click.stop
+                      title="Open collection"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3z"></path>
+                        <path d="M5 5h6v2H7v10h10v-4h2v6H5V5z"></path>
+                      </svg>
+                    </a>
+                  </div>
 
-                <div x-show="!group.isCollapsed" class="pn-playlist-content">
-                  <div class="pn-video-list">
-                    <template x-for="video in getPaginatedVideos(group.videos, group.playlist.id)" :key="video.id">
-                          <div class="pn-video-item">
-                            <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
-                              <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
-                            </a>
-                            <div class="pn-video-details">
-                              <h4 class="pn-video-title">
-                                <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                              </h4>
-                              <p class="pn-video-meta">
-                                <span class="pn-meta-item">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                                    <path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>
-                                  </svg>
-                                  <span x-text="formatDate(video.publishedAt)"></span>
-                                </span>
-                                <span class="pn-meta-item">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                                    <line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>
-                                  </svg>
-                                  <span x-text="video.durationFormatted"></span>
-                                </span>
-                                <span class="pn-meta-item">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>
-                                  </svg>
-                                  <span x-text="formatViews(video.viewCount)"></span> views
-                                </span>
-                                <span class="pn-meta-item">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                                    <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                  </svg>
-                                  <span x-text="formatViews(video.likeCount)"></span> likes
-                                </span>
-                              </p>
-                            </div>
+                  <div x-show="!group.isCollapsed" class="pn-playlist-content">
+                    <div class="pn-video-list">
+                      <template x-for="item in getPaginatedItems(group.items, group.collection.id)" :key="item.id">
+                        <div class="pn-video-item">
+                          <a :href="item.url" target="_blank" rel="noopener" class="pn-video-thumbnail">
+                            <img :src="item.thumbnailUrl" :alt="item.title" loading="lazy">
+                          </a>
+                          <div class="pn-video-details">
+                            <h4 class="pn-video-title">
+                              <a :href="item.url" target="_blank" rel="noopener" x-text="item.title"></a>
+                            </h4>
+                            <p class="pn-video-meta">
+                              <span class="pn-meta-item">
+                                <span x-text="formatDate(item.publishedAt)"></span>
+                              </span>
+                              <span class="pn-meta-item">
+                                <span x-text="item.durationFormatted"></span>
+                              </span>
+                              <span class="pn-meta-item">
+                                <span x-text="item.contentType"></span>
+                              </span>
+                              <span class="pn-meta-item" x-show="item.viewCount > 0">
+                                <span x-text="formatViews(item.viewCount)"></span> views
+                              </span>
+                              <span class="pn-meta-item" x-show="item.likeCount > 0">
+                                <span x-text="formatViews(item.likeCount)"></span> likes
+                              </span>
+                            </p>
                           </div>
                         </div>
-                    </template>
-                  </div>
+                      </template>
+                    </div>
 
-                  <!-- Pagination controls -->
-                  <div x-show="getPlaylistTotalPages(group.videos.length) > 1" class="pn-pagination">
-                    <button
-                      @click="prevPlaylistPage(group.playlist.id)"
-                      :disabled="getPlaylistPage(group.playlist.id) === 1"
-                      class="pn-btn"
-                    >Previous</button>
-                    <span class="pn-page-info">
-                      Page <span x-text="getPlaylistPage(group.playlist.id)"></span> of <span x-text="getPlaylistTotalPages(group.videos.length)"></span>
-                    </span>
-                    <button
-                      @click="nextPlaylistPage(group.playlist.id, getPlaylistTotalPages(group.videos.length))"
-                      :disabled="getPlaylistPage(group.playlist.id) === getPlaylistTotalPages(group.videos.length)"
-                      class="pn-btn"
-                    >Next</button>
+                    <div x-show="getCollectionTotalPages(group.items.length) > 1" class="pn-pagination">
+                      <button
+                        @click="prevCollectionPage(group.collection.id)"
+                        :disabled="getCollectionPage(group.collection.id) === 1"
+                        class="pn-btn"
+                      >Previous</button>
+                      <span class="pn-page-info">
+                        Page <span x-text="getCollectionPage(group.collection.id)"></span> of <span x-text="getCollectionTotalPages(group.items.length)"></span>
+                      </span>
+                      <button
+                        @click="nextCollectionPage(group.collection.id, getCollectionTotalPages(group.items.length))"
+                        :disabled="getCollectionPage(group.collection.id) === getCollectionTotalPages(group.items.length)"
+                        class="pn-btn"
+                      >Next</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </template>
+              </template>
+            </div>
           </div>
         </template>
       </div>
     </template>
 
-    <!-- Grid View (Playlist-based with Categories) -->
-    <template x-if="layoutMode === 'grid' && playlistsWithVideos.length > 0">
+    <template x-if="layoutMode === 'grid' && collectionsWithItems.length > 0">
       <div class="pn-playlists">
-        <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
-          <div class="pn-category-group">
-            <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
+        <template x-for="majorGroup in collectionsWithItems" :key="majorGroup.majorCollection">
+          <div class="pn-major-section">
+            <button
+              class="pn-major-header"
+              @click="toggleMajorCollection(majorGroup.majorCollection)"
+              :class="{ 'pn-collapsed': isMajorCollapsed(majorGroup.majorCollection) }"
+            >
+              <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="pn-major-header-text">
+                <span class="pn-major-title" x-text="majorGroup.majorCollection"></span>
+                <span class="pn-major-count" x-text="\`\${majorGroup.collections.length} collections • \${majorGroup.totalItemCount} items\`"></span>
+              </div>
+            </button>
 
-            <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
-              <div class="pn-playlist-section">
-                <div
-                  class="pn-playlist-header"
-                  @click="togglePlaylist(group.playlist.id)"
-                  :class="{ 'pn-collapsed': group.isCollapsed }"
-                >
-                  <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <div class="pn-playlist-info">
-                    <div class="pn-playlist-title-group">
-                      <h3>
-                        <span x-text="group.playlist.title"></span>
-                        <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
-                      </h3>
-                      <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+            <div x-show="!isMajorCollapsed(majorGroup.majorCollection)" class="pn-major-content">
+              <template x-for="group in majorGroup.collections" :key="group.collection.id">
+                <div class="pn-playlist-section">
+                  <div
+                    class="pn-playlist-header"
+                    @click="toggleCollection(group.collection.id)"
+                    :class="{ 'pn-collapsed': group.isCollapsed }"
+                  >
+                    <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="pn-playlist-info">
+                      <div class="pn-playlist-title-group">
+                        <h3>
+                          <span x-text="group.collection.title"></span>
+                          <span class="pn-video-count" x-text="\` (\${group.itemCount} items)\`"></span>
+                        </h3>
+                        <p class="pn-playlist-description" x-show="group.collection.description" x-text="group.collection.description"></p>
+                      </div>
+                    </div>
+                    <a
+                      :href="group.collection.url"
+                      target="_blank"
+                      rel="noopener"
+                      class="pn-playlist-youtube-link"
+                      @click.stop
+                      title="Open collection"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3z"></path>
+                        <path d="M5 5h6v2H7v10h10v-4h2v6H5V5z"></path>
+                      </svg>
+                    </a>
+                  </div>
+
+                  <div x-show="!group.isCollapsed" class="pn-playlist-content">
+                    <div class="pn-video-grid">
+                      <template x-for="item in getPaginatedItems(group.items, group.collection.id)" :key="item.id">
+                        <div class="pn-video-card">
+                          <a :href="item.url" target="_blank" rel="noopener" class="pn-thumbnail">
+                            <img :src="item.thumbnailUrl" :alt="item.title" loading="lazy" @load="\$el.classList.add('pn-loaded')" @error="\$el.classList.add('pn-loaded')">
+                            <span class="pn-duration" x-text="item.durationFormatted"></span>
+                          </a>
+                          <div class="pn-video-info">
+                            <h3 class="pn-video-title">
+                              <a :href="item.url" target="_blank" rel="noopener" x-text="item.title"></a>
+                            </h3>
+                            <p class="pn-video-meta">
+                              <span x-text="formatDate(item.publishedAt)"></span>
+                              <span> • </span>
+                              <span x-text="item.contentType"></span>
+                            </p>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+
+                    <div x-show="getCollectionTotalPages(group.items.length) > 1" class="pn-pagination">
+                      <button
+                        @click="prevCollectionPage(group.collection.id)"
+                        :disabled="getCollectionPage(group.collection.id) === 1"
+                        class="pn-btn"
+                      >Previous</button>
+                      <span class="pn-page-info">
+                        Page <span x-text="getCollectionPage(group.collection.id)"></span> of <span x-text="getCollectionTotalPages(group.items.length)"></span>
+                      </span>
+                      <button
+                        @click="nextCollectionPage(group.collection.id, getCollectionTotalPages(group.items.length))"
+                        :disabled="getCollectionPage(group.collection.id) === getCollectionTotalPages(group.items.length)"
+                        class="pn-btn"
+                      >Next</button>
                     </div>
                   </div>
-                  <a
-                    :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
-                    target="_blank"
-                    rel="noopener"
-                    class="pn-playlist-youtube-link"
-                    @click.stop
-                    title="Open playlist on YouTube"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                  </a>
                 </div>
-
-                <div x-show="!group.isCollapsed" class="pn-playlist-content">
-                  <div class="pn-video-grid">
-                    <template x-for="video in getPaginatedVideos(group.videos, group.playlist.id)" :key="video.id">
-                      <div class="pn-video-card">
-                        <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
-                          <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy" @load="\$el.classList.add('pn-loaded')" @error="\$el.classList.add('pn-loaded')">
-                          <span class="pn-duration" x-text="video.durationFormatted"></span>
-                        </a>
-                        <div class="pn-video-info">
-                          <h3 class="pn-video-title">
-                            <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                          </h3>
-                          <p class="pn-video-meta">
-                            <span x-text="formatDate(video.publishedAt)"></span>
-                            <span> • </span>
-                            <span x-text="formatViews(video.viewCount)"></span> views
-                          </p>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
-
-                  <!-- Pagination controls -->
-                  <div x-show="getPlaylistTotalPages(group.videos.length) > 1" class="pn-pagination">
-                    <button
-                      @click="prevPlaylistPage(group.playlist.id)"
-                      :disabled="getPlaylistPage(group.playlist.id) === 1"
-                      class="pn-btn"
-                    >Previous</button>
-                    <span class="pn-page-info">
-                      Page <span x-text="getPlaylistPage(group.playlist.id)"></span> of <span x-text="getPlaylistTotalPages(group.videos.length)"></span>
-                    </span>
-                    <button
-                      @click="nextPlaylistPage(group.playlist.id, getPlaylistTotalPages(group.videos.length))"
-                      :disabled="getPlaylistPage(group.playlist.id) === getPlaylistTotalPages(group.videos.length)"
-                      class="pn-btn"
-                    >Next</button>
-                  </div>
-                </div>
-              </div>
-            </template>
+              </template>
+            </div>
           </div>
         </template>
       </div>
@@ -4389,7 +4581,7 @@ window.patristicNectarWidget = patristicNectarWidget;
         container.innerHTML = `<div x-data="patristicNectarWidget()" x-init="init()" class="pn-widget">
   <div x-show="loading" class="pn-loading">
     <div class="pn-spinner"></div>
-    <p>Loading videos from Patristic Nectar...</p>
+    <p>Loading content from Patristic Nectar...</p>
   </div>
 
   <div x-show="error" class="pn-error">
@@ -4398,23 +4590,30 @@ window.patristicNectarWidget = patristicNectarWidget;
 
   <div x-show="!loading && !error" class="pn-main">
     <div class="pn-header">
-      <h2>Patristic Nectar Videos</h2>
-      <p class="pn-subtitle" x-text="hasActiveFilters ? \`Showing \${totalVideos} of \${totalUnfilteredVideos} videos in \${playlists.length} playlists\` : \`\${totalUnfilteredVideos} videos in \${playlists.length} playlists\`"></p>
-      <p x-show="lastUpdated" class="pn-last-updated" x-text="\`Last updated: \${formatDate(lastUpdated)}\`"></p>
+      <h2>Patristic Nectar Index</h2>
+      <p
+        class="pn-subtitle"
+        x-text="hasActiveFilters ? \`Showing \${totalItems} of \${totalUnfilteredItems} items across \${sortedCollections.length} collections\` : \`\${totalUnfilteredItems} items across \${sortedCollections.length} collections\`"
+      ></p>
+      <p
+        x-show="lastUpdated"
+        class="pn-last-updated"
+        x-text="\`Last updated: \${formatDate(lastUpdated)}\`"
+      ></p>
     </div>
 
     <div class="pn-controls">
       <input
         type="search"
         x-model="searchQueryInput"
-        placeholder="Search videos..."
+        placeholder="Search all content..."
         class="pn-search pn-input"
       >
 
-      <select x-model="selectedPlaylist" class="pn-select">
-        <option value="">All Playlists</option>
-        <template x-for="playlist in sortedPlaylists" :key="playlist.id">
-          <option :value="playlist.id" x-text="playlist.title"></option>
+      <select x-model="selectedCollection" class="pn-select">
+        <option value="">All Collections</option>
+        <template x-for="collection in sortedCollections" :key="collection.id">
+          <option :value="collection.id" x-text="collection.title"></option>
         </template>
       </select>
 
@@ -4430,31 +4629,93 @@ window.patristicNectarWidget = patristicNectarWidget;
       </select>
     </div>
 
-    <div class="pn-category-tabs" x-show="categories.length > 1">
+    <div class="pn-type-filter" role="toolbar" aria-label="Content type filter">
       <button
-        class="pn-category-tab"
-        :class="{ 'pn-active': selectedCategory === '' }"
-        @click="selectedCategory = ''"
-      >All</button>
-      <template x-for="category in categories" :key="category">
-        <button
-          class="pn-category-tab"
-          :class="{ 'pn-active': selectedCategory === category }"
-          @click="selectedCategory = category"
-          x-text="category"
-        ></button>
-      </template>
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': isAllContentTypesSelected }"
+        @click="selectAllContentTypes()"
+        :aria-pressed="isAllContentTypesSelected"
+      >
+        <span class="pn-type-pill-label">All</span>
+      </button>
+
+      <button
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': visibleContentTypes.video }"
+        @click="toggleContentType('video')"
+        :aria-pressed="visibleContentTypes.video"
+      >
+        <svg class="pn-type-pill-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path>
+          <rect x="2" y="6" width="14" height="12" rx="2"></rect>
+        </svg>
+        <span class="pn-type-pill-label">Videos</span>
+        <span class="pn-type-pill-count" x-text="contentTypeCounts.video"></span>
+      </button>
+
+      <button
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': visibleContentTypes.lecture }"
+        @click="toggleContentType('lecture')"
+        :aria-pressed="visibleContentTypes.lecture"
+      >
+        <svg class="pn-type-pill-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path>
+          <path d="M22 10v6"></path>
+          <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path>
+        </svg>
+        <span class="pn-type-pill-label">Lectures</span>
+        <span class="pn-type-pill-count" x-text="contentTypeCounts.lecture"></span>
+      </button>
+
+      <button
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': visibleContentTypes.podcast }"
+        @click="toggleContentType('podcast')"
+        :aria-pressed="visibleContentTypes.podcast"
+      >
+        <svg class="pn-type-pill-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 17a1 1 0 1 0-2 0l.5 4.5a0.5.5 0 0 0 1 0z" fill="currentColor"></path>
+          <path d="M16.85 18.58a9 9 0 1 0-9.7 0"></path>
+          <path d="M8 14a5 5 0 1 1 8 0"></path>
+          <circle cx="12" cy="11" r="1" fill="currentColor"></circle>
+        </svg>
+        <span class="pn-type-pill-label">Podcasts</span>
+        <span class="pn-type-pill-count" x-text="contentTypeCounts.podcast"></span>
+      </button>
+
+      <button
+        class="pn-type-pill"
+        :class="{ 'pn-type-pill-active': visibleContentTypes.synaxarion }"
+        @click="toggleContentType('synaxarion')"
+        :aria-pressed="visibleContentTypes.synaxarion"
+      >
+        <svg class="pn-type-pill-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 2v4"></path>
+          <path d="M16 2v4"></path>
+          <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+          <path d="M3 10h18"></path>
+          <path d="M8 14h.01"></path>
+          <path d="M12 14h.01"></path>
+          <path d="M16 14h.01"></path>
+          <path d="M8 18h.01"></path>
+          <path d="M12 18h.01"></path>
+          <path d="M16 18h.01"></path>
+        </svg>
+        <span class="pn-type-pill-label">Synaxarion</span>
+        <span class="pn-type-pill-count" x-text="contentTypeCounts.synaxarion"></span>
+      </button>
     </div>
 
     <div class="pn-toolbar">
       <button @click="toggleLayout()" class="pn-btn pn-btn-sm pn-layout-toggle">
-        <svg x-show="layoutMode === 'list'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-grid-icon lucide-layout-grid">
+        <svg x-show="layoutMode === 'list'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect width="7" height="7" x="3" y="3" rx="1"></rect>
           <rect width="7" height="7" x="14" y="3" rx="1"></rect>
           <rect width="7" height="7" x="14" y="14" rx="1"></rect>
           <rect width="7" height="7" x="3" y="14" rx="1"></rect>
         </svg>
-        <svg x-show="layoutMode === 'grid'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-icon lucide-list">
+        <svg x-show="layoutMode === 'grid'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 5h.01"></path>
           <path d="M3 12h.01"></path>
           <path d="M3 19h.01"></path>
@@ -4470,202 +4731,214 @@ window.patristicNectarWidget = patristicNectarWidget;
       </div>
     </div>
 
-    <div x-show="layoutMode === 'grid' && allFilteredVideos.length === 0" class="pn-empty">
-      <p>No videos found matching your search.</p>
+    <div x-show="collectionsWithItems.length === 0" class="pn-empty">
+      <p>No content found matching your filters.</p>
     </div>
 
-    <div x-show="layoutMode === 'list' && playlistsWithVideos.length === 0" class="pn-empty">
-      <p>No videos found matching your search.</p>
-    </div>
-
-    <!-- List View (Playlist-based with Categories) -->
-    <template x-if="layoutMode === 'list' && playlistsWithVideos.length > 0">
+    <template x-if="layoutMode === 'list' && collectionsWithItems.length > 0">
       <div class="pn-playlists">
-        <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
-          <div class="pn-category-group">
-            <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
+        <template x-for="majorGroup in collectionsWithItems" :key="majorGroup.majorCollection">
+          <div class="pn-major-section">
+            <button
+              class="pn-major-header"
+              @click="toggleMajorCollection(majorGroup.majorCollection)"
+              :class="{ 'pn-collapsed': isMajorCollapsed(majorGroup.majorCollection) }"
+            >
+              <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="pn-major-header-text">
+                <span class="pn-major-title" x-text="majorGroup.majorCollection"></span>
+                <span class="pn-major-count" x-text="\`\${majorGroup.collections.length} collections • \${majorGroup.totalItemCount} items\`"></span>
+              </div>
+            </button>
 
-            <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
-              <div class="pn-playlist-section">
-                <div
-                  class="pn-playlist-header"
-                  @click="togglePlaylist(group.playlist.id)"
-                  :class="{ 'pn-collapsed': group.isCollapsed }"
-                >
-                  <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <div class="pn-playlist-info">
-                    <div class="pn-playlist-title-group">
-                      <h3>
-                        <span x-text="group.playlist.title"></span>
-                        <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
-                      </h3>
-                      <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
-                    </div>
-                  </div>
-                  <a
-                    :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
-                    target="_blank"
-                    rel="noopener"
-                    class="pn-playlist-youtube-link"
-                    @click.stop
-                    title="Open playlist on YouTube"
+            <div x-show="!isMajorCollapsed(majorGroup.majorCollection)" class="pn-major-content">
+              <template x-for="group in majorGroup.collections" :key="group.collection.id">
+                <div class="pn-playlist-section">
+                  <div
+                    class="pn-playlist-header"
+                    @click="toggleCollection(group.collection.id)"
+                    :class="{ 'pn-collapsed': group.isCollapsed }"
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                  </a>
-                </div>
+                    <div class="pn-playlist-info">
+                      <div class="pn-playlist-title-group">
+                        <h3>
+                          <span x-text="group.collection.title"></span>
+                          <span class="pn-video-count" x-text="\` (\${group.itemCount} items)\`"></span>
+                        </h3>
+                        <p class="pn-playlist-description" x-show="group.collection.description" x-text="group.collection.description"></p>
+                      </div>
+                    </div>
+                    <a
+                      :href="group.collection.url"
+                      target="_blank"
+                      rel="noopener"
+                      class="pn-playlist-youtube-link"
+                      @click.stop
+                      title="Open collection"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3z"></path>
+                        <path d="M5 5h6v2H7v10h10v-4h2v6H5V5z"></path>
+                      </svg>
+                    </a>
+                  </div>
 
-                <div x-show="!group.isCollapsed" class="pn-playlist-content">
-                  <div class="pn-video-list">
-                    <template x-for="video in getPaginatedVideos(group.videos, group.playlist.id)" :key="video.id">
-                          <div class="pn-video-item">
-                            <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-video-thumbnail">
-                              <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy">
-                            </a>
-                            <div class="pn-video-details">
-                              <h4 class="pn-video-title">
-                                <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                              </h4>
-                              <p class="pn-video-meta">
-                                <span class="pn-meta-item">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                                    <path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>
-                                  </svg>
-                                  <span x-text="formatDate(video.publishedAt)"></span>
-                                </span>
-                                <span class="pn-meta-item">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                                    <line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>
-                                  </svg>
-                                  <span x-text="video.durationFormatted"></span>
-                                </span>
-                                <span class="pn-meta-item">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>
-                                  </svg>
-                                  <span x-text="formatViews(video.viewCount)"></span> views
-                                </span>
-                                <span class="pn-meta-item">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pn-meta-icon">
-                                    <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                                  </svg>
-                                  <span x-text="formatViews(video.likeCount)"></span> likes
-                                </span>
-                              </p>
-                            </div>
+                  <div x-show="!group.isCollapsed" class="pn-playlist-content">
+                    <div class="pn-video-list">
+                      <template x-for="item in getPaginatedItems(group.items, group.collection.id)" :key="item.id">
+                        <div class="pn-video-item">
+                          <a :href="item.url" target="_blank" rel="noopener" class="pn-video-thumbnail">
+                            <img :src="item.thumbnailUrl" :alt="item.title" loading="lazy">
+                          </a>
+                          <div class="pn-video-details">
+                            <h4 class="pn-video-title">
+                              <a :href="item.url" target="_blank" rel="noopener" x-text="item.title"></a>
+                            </h4>
+                            <p class="pn-video-meta">
+                              <span class="pn-meta-item">
+                                <span x-text="formatDate(item.publishedAt)"></span>
+                              </span>
+                              <span class="pn-meta-item">
+                                <span x-text="item.durationFormatted"></span>
+                              </span>
+                              <span class="pn-meta-item">
+                                <span x-text="item.contentType"></span>
+                              </span>
+                              <span class="pn-meta-item" x-show="item.viewCount > 0">
+                                <span x-text="formatViews(item.viewCount)"></span> views
+                              </span>
+                              <span class="pn-meta-item" x-show="item.likeCount > 0">
+                                <span x-text="formatViews(item.likeCount)"></span> likes
+                              </span>
+                            </p>
                           </div>
                         </div>
-                    </template>
-                  </div>
+                      </template>
+                    </div>
 
-                  <!-- Pagination controls -->
-                  <div x-show="getPlaylistTotalPages(group.videos.length) > 1" class="pn-pagination">
-                    <button
-                      @click="prevPlaylistPage(group.playlist.id)"
-                      :disabled="getPlaylistPage(group.playlist.id) === 1"
-                      class="pn-btn"
-                    >Previous</button>
-                    <span class="pn-page-info">
-                      Page <span x-text="getPlaylistPage(group.playlist.id)"></span> of <span x-text="getPlaylistTotalPages(group.videos.length)"></span>
-                    </span>
-                    <button
-                      @click="nextPlaylistPage(group.playlist.id, getPlaylistTotalPages(group.videos.length))"
-                      :disabled="getPlaylistPage(group.playlist.id) === getPlaylistTotalPages(group.videos.length)"
-                      class="pn-btn"
-                    >Next</button>
+                    <div x-show="getCollectionTotalPages(group.items.length) > 1" class="pn-pagination">
+                      <button
+                        @click="prevCollectionPage(group.collection.id)"
+                        :disabled="getCollectionPage(group.collection.id) === 1"
+                        class="pn-btn"
+                      >Previous</button>
+                      <span class="pn-page-info">
+                        Page <span x-text="getCollectionPage(group.collection.id)"></span> of <span x-text="getCollectionTotalPages(group.items.length)"></span>
+                      </span>
+                      <button
+                        @click="nextCollectionPage(group.collection.id, getCollectionTotalPages(group.items.length))"
+                        :disabled="getCollectionPage(group.collection.id) === getCollectionTotalPages(group.items.length)"
+                        class="pn-btn"
+                      >Next</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </template>
+              </template>
+            </div>
           </div>
         </template>
       </div>
     </template>
 
-    <!-- Grid View (Playlist-based with Categories) -->
-    <template x-if="layoutMode === 'grid' && playlistsWithVideos.length > 0">
+    <template x-if="layoutMode === 'grid' && collectionsWithItems.length > 0">
       <div class="pn-playlists">
-        <template x-for="categoryGroup in playlistsWithVideos" :key="categoryGroup.categoryName">
-          <div class="pn-category-group">
-            <h2 class="pn-category-header" x-text="categoryGroup.categoryName"></h2>
+        <template x-for="majorGroup in collectionsWithItems" :key="majorGroup.majorCollection">
+          <div class="pn-major-section">
+            <button
+              class="pn-major-header"
+              @click="toggleMajorCollection(majorGroup.majorCollection)"
+              :class="{ 'pn-collapsed': isMajorCollapsed(majorGroup.majorCollection) }"
+            >
+              <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="pn-major-header-text">
+                <span class="pn-major-title" x-text="majorGroup.majorCollection"></span>
+                <span class="pn-major-count" x-text="\`\${majorGroup.collections.length} collections • \${majorGroup.totalItemCount} items\`"></span>
+              </div>
+            </button>
 
-            <template x-for="group in categoryGroup.playlists" :key="group.playlist.id">
-              <div class="pn-playlist-section">
-                <div
-                  class="pn-playlist-header"
-                  @click="togglePlaylist(group.playlist.id)"
-                  :class="{ 'pn-collapsed': group.isCollapsed }"
-                >
-                  <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <div class="pn-playlist-info">
-                    <div class="pn-playlist-title-group">
-                      <h3>
-                        <span x-text="group.playlist.title"></span>
-                        <span class="pn-video-count" x-text="\` (\${group.videoCount} videos)\`"></span>
-                      </h3>
-                      <p class="pn-playlist-description" x-show="group.playlist.description" x-text="group.playlist.description"></p>
+            <div x-show="!isMajorCollapsed(majorGroup.majorCollection)" class="pn-major-content">
+              <template x-for="group in majorGroup.collections" :key="group.collection.id">
+                <div class="pn-playlist-section">
+                  <div
+                    class="pn-playlist-header"
+                    @click="toggleCollection(group.collection.id)"
+                    :class="{ 'pn-collapsed': group.isCollapsed }"
+                  >
+                    <svg class="pn-chevron" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="pn-playlist-info">
+                      <div class="pn-playlist-title-group">
+                        <h3>
+                          <span x-text="group.collection.title"></span>
+                          <span class="pn-video-count" x-text="\` (\${group.itemCount} items)\`"></span>
+                        </h3>
+                        <p class="pn-playlist-description" x-show="group.collection.description" x-text="group.collection.description"></p>
+                      </div>
+                    </div>
+                    <a
+                      :href="group.collection.url"
+                      target="_blank"
+                      rel="noopener"
+                      class="pn-playlist-youtube-link"
+                      @click.stop
+                      title="Open collection"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3z"></path>
+                        <path d="M5 5h6v2H7v10h10v-4h2v6H5V5z"></path>
+                      </svg>
+                    </a>
+                  </div>
+
+                  <div x-show="!group.isCollapsed" class="pn-playlist-content">
+                    <div class="pn-video-grid">
+                      <template x-for="item in getPaginatedItems(group.items, group.collection.id)" :key="item.id">
+                        <div class="pn-video-card">
+                          <a :href="item.url" target="_blank" rel="noopener" class="pn-thumbnail">
+                            <img :src="item.thumbnailUrl" :alt="item.title" loading="lazy" @load="\$el.classList.add('pn-loaded')" @error="\$el.classList.add('pn-loaded')">
+                            <span class="pn-duration" x-text="item.durationFormatted"></span>
+                          </a>
+                          <div class="pn-video-info">
+                            <h3 class="pn-video-title">
+                              <a :href="item.url" target="_blank" rel="noopener" x-text="item.title"></a>
+                            </h3>
+                            <p class="pn-video-meta">
+                              <span x-text="formatDate(item.publishedAt)"></span>
+                              <span> • </span>
+                              <span x-text="item.contentType"></span>
+                            </p>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+
+                    <div x-show="getCollectionTotalPages(group.items.length) > 1" class="pn-pagination">
+                      <button
+                        @click="prevCollectionPage(group.collection.id)"
+                        :disabled="getCollectionPage(group.collection.id) === 1"
+                        class="pn-btn"
+                      >Previous</button>
+                      <span class="pn-page-info">
+                        Page <span x-text="getCollectionPage(group.collection.id)"></span> of <span x-text="getCollectionTotalPages(group.items.length)"></span>
+                      </span>
+                      <button
+                        @click="nextCollectionPage(group.collection.id, getCollectionTotalPages(group.items.length))"
+                        :disabled="getCollectionPage(group.collection.id) === getCollectionTotalPages(group.items.length)"
+                        class="pn-btn"
+                      >Next</button>
                     </div>
                   </div>
-                  <a
-                    :href="\`https://www.youtube.com/playlist?list=\${group.playlist.id}\`"
-                    target="_blank"
-                    rel="noopener"
-                    class="pn-playlist-youtube-link"
-                    @click.stop
-                    title="Open playlist on YouTube"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                  </a>
                 </div>
-
-                <div x-show="!group.isCollapsed" class="pn-playlist-content">
-                  <div class="pn-video-grid">
-                    <template x-for="video in getPaginatedVideos(group.videos, group.playlist.id)" :key="video.id">
-                      <div class="pn-video-card">
-                        <a :href="video.videoUrl" target="_blank" rel="noopener" class="pn-thumbnail">
-                          <img :src="video.thumbnailUrl" :alt="video.title" loading="lazy" @load="\$el.classList.add('pn-loaded')" @error="\$el.classList.add('pn-loaded')">
-                          <span class="pn-duration" x-text="video.durationFormatted"></span>
-                        </a>
-                        <div class="pn-video-info">
-                          <h3 class="pn-video-title">
-                            <a :href="video.videoUrl" target="_blank" rel="noopener" x-text="video.title"></a>
-                          </h3>
-                          <p class="pn-video-meta">
-                            <span x-text="formatDate(video.publishedAt)"></span>
-                            <span> • </span>
-                            <span x-text="formatViews(video.viewCount)"></span> views
-                          </p>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
-
-                  <!-- Pagination controls -->
-                  <div x-show="getPlaylistTotalPages(group.videos.length) > 1" class="pn-pagination">
-                    <button
-                      @click="prevPlaylistPage(group.playlist.id)"
-                      :disabled="getPlaylistPage(group.playlist.id) === 1"
-                      class="pn-btn"
-                    >Previous</button>
-                    <span class="pn-page-info">
-                      Page <span x-text="getPlaylistPage(group.playlist.id)"></span> of <span x-text="getPlaylistTotalPages(group.videos.length)"></span>
-                    </span>
-                    <button
-                      @click="nextPlaylistPage(group.playlist.id, getPlaylistTotalPages(group.videos.length))"
-                      :disabled="getPlaylistPage(group.playlist.id) === getPlaylistTotalPages(group.videos.length)"
-                      class="pn-btn"
-                    >Next</button>
-                  </div>
-                </div>
-              </div>
-            </template>
+              </template>
+            </div>
           </div>
         </template>
       </div>

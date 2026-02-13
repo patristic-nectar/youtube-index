@@ -15,17 +15,22 @@
 <body>
   <div id="patristic-nectar-widget"></div>
 
-  <!-- Local config for development (gitignored) -->
-  <script src="local-config.js"></script>
-
   <!-- Widget -->
   <script src="dist/widget.js"></script>
 
-  <!-- Auto-fill API key from local config if available -->
+  <!-- Optional local config for development (gitignored). Load silently if present. -->
   <script>
-    if (window.LOCAL_CONFIG && window.LOCAL_CONFIG.YOUTUBE_API_KEY) {
-      localStorage.setItem('pn-youtube-api-key', window.LOCAL_CONFIG.YOUTUBE_API_KEY);
-    }
+    (function() {
+      const script = document.createElement('script');
+      script.src = 'local-config.js';
+      script.onload = function() {
+        if (window.LOCAL_CONFIG && window.LOCAL_CONFIG.YOUTUBE_API_KEY) {
+          localStorage.setItem('pn-youtube-api-key', window.LOCAL_CONFIG.YOUTUBE_API_KEY);
+        }
+      };
+      script.onerror = function() {};
+      document.head.appendChild(script);
+    })();
   </script>
 </body>
 </html>
