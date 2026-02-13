@@ -267,9 +267,9 @@
 }
 
 .pn-type-pill-active {
-  background: var(--pn-surface);
+  background: var(--pn-primary);
   border-color: var(--pn-primary);
-  color: var(--pn-primary);
+  color: var(--site-color-accent-text, white);
 }
 
 .pn-type-pill-icon {
@@ -297,8 +297,8 @@
 }
 
 .pn-type-pill-active .pn-type-pill-count {
-  color: var(--pn-primary);
-  background: var(--pn-bg);
+  color: var(--site-color-accent-text, white);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* Category Tabs */

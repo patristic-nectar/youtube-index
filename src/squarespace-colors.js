@@ -10,6 +10,7 @@ function applySquarespaceColors() {
   }
 
   try {
+    const root = getComputedStyle(document.documentElement);
     const body = getComputedStyle(document.body);
 
     // Extract base colors from body
@@ -39,13 +40,61 @@ function applySquarespaceColors() {
       return;
     }
 
-    // Try to find Squarespace primary button for accent color
+    function normalizeToComputedColor(colorString) {
+      if (!colorString) return "";
+      const probe = document.createElement("span");
+      probe.style.color = colorString.trim();
+      probe.style.display = "none";
+      document.body.appendChild(probe);
+      const resolved = getComputedStyle(probe).color;
+      probe.remove();
+      return resolved;
+    }
+
+    function readCssColorVar(style, name) {
+      return normalizeToComputedColor(style.getPropertyValue(name));
+    }
+
+    function firstValidColor(candidates) {
+      for (const candidate of candidates) {
+        if (isValidColor(candidate)) return candidate;
+      }
+      return "";
+    }
+
+    // Prefer explicit theme accent variables first, then visible UI elements.
+    const accentFromVars = firstValidColor([
+      readCssColorVar(root, "--site-color-accent"),
+      readCssColorVar(root, "--accent-color"),
+      readCssColorVar(root, "--color-accent"),
+      readCssColorVar(root, "--primary-color"),
+      readCssColorVar(root, "--button-primary-color"),
+      readCssColorVar(body, "--site-color-accent"),
+      readCssColorVar(body, "--accent-color")
+    ]);
+
     const primaryBtn = document.querySelector(
-      '.sqs-block-button-element--primary, .btn--primary, [class*="primary-button"]'
+      [
+        ".sqs-block-button-element--primary",
+        ".sqs-button-element--primary",
+        ".btn--primary",
+        '[class*="primary-button"]',
+        '[class*="sqs-button-element--primary"]'
+      ].join(", ")
     );
-    const accentColor = primaryBtn && isValidColor(getComputedStyle(primaryBtn).backgroundColor)
-      ? getComputedStyle(primaryBtn).backgroundColor
-      : textColor; // Fallback to text color if no button found
+    const accentFromButton =
+      primaryBtn && isValidColor(getComputedStyle(primaryBtn).backgroundColor)
+        ? getComputedStyle(primaryBtn).backgroundColor
+        : "";
+
+    const accentFromLink = isValidColor(body.getPropertyValue("link")) ? body.getPropertyValue("link") : "";
+
+    const accentColor = firstValidColor([
+      accentFromVars,
+      accentFromButton,
+      normalizeToComputedColor(accentFromLink),
+      textColor
+    ]);
 
     // Helper function to parse rgb/rgba to components
     function parseColor(colorString) {
@@ -154,6 +203,12 @@ function applySquarespaceColors() {
       return `rgb(${r}, ${g}, ${b})`;
     }
 
+    function colorWithAlpha(colorString, alpha = 0.14) {
+      const parsed = parseColor(colorString);
+      if (!parsed) return `rgba(26, 115, 232, ${alpha})`;
+      return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${alpha})`;
+    }
+
     // Helper function to ensure accent has good contrast with background
     function ensureAccentContrast(accentColorString, bgColorString) {
       const accentParsed = parseColor(accentColorString);
@@ -180,6 +235,7 @@ function applySquarespaceColors() {
     // Calculate derived colors
     const accentAdjusted = ensureAccentContrast(accentColor, bgColor);
     const accentDark = darkenColor(accentAdjusted, 15);
+    const accentLight = colorWithAlpha(accentAdjusted, 0.14);
     const surfaceColor = createSurfaceColor(bgColor);
     const borderColor = createBorderColor(bgColor);
     const textSecondary = createSecondaryTextColor(textColor);
@@ -193,6 +249,7 @@ function applySquarespaceColors() {
       widgetContainer.style.setProperty('--site-color-bg', bgColor);
       widgetContainer.style.setProperty('--site-color-accent', accentAdjusted);
       widgetContainer.style.setProperty('--site-color-accent-dark', accentDark);
+      widgetContainer.style.setProperty('--site-color-accent-light', accentLight);
       widgetContainer.style.setProperty('--site-color-accent-text', accentText);
       widgetContainer.style.setProperty('--site-color-surface', surfaceColor);
       widgetContainer.style.setProperty('--site-color-border', borderColor);
