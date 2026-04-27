@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-04-26T18:39:48.371Z",
+  "timestamp": "2026-04-27T01:56:57.489Z",
   "collectionCount": 549,
   "itemCount": 3414,
   "sources": {
     "youtube": {
-      "timestamp": "2026-04-26T18:38:48.466Z",
+      "timestamp": "2026-04-27T01:56:13.095Z",
       "playlistCount": 50,
       "videoCount": 1456
     },
     "patristic_api": {
-      "timestamp": "2026-04-26T18:39:48.165Z",
+      "timestamp": "2026-04-27T01:56:57.270Z",
       "collectionCount": 490,
       "contentCount": 1958
     }
