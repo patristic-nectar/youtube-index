@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-04-30T19:07:41.684Z",
+  "timestamp": "2026-05-01T02:09:36.582Z",
   "endpoint": "https://api.patristicnectar.org/graphql",
   "rootParentId": 2,
   "perPage": 50,
   "maxDepth": 8,
-  "collectionCount": 490,
-  "contentCount": 1958,
-  "visitedParentCount": 491
+  "collectionCount": 491,
+  "contentCount": 1965,
+  "visitedParentCount": 492
 }

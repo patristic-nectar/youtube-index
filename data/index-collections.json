@@ -377,6 +377,19 @@
     "sourceId": "1052"
   },
   {
+    "id": "pat:collection:1596",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "The Christian Life Conference Videos",
+    "description": "Videos of each lecture at The Christian Life Conference.",
+    "parentId": "major:the-christian-life-conference-videos",
+    "majorCollection": "The Christian Life Conference Videos",
+    "url": "https://app.patristicnectar.org/discover/the-christian-life-conference-videos",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/lenten-retreat-square.png",
+    "position": 177759062,
+    "sourceId": "1596"
+  },
+  {
     "id": "yt:collection:PLuPBy_6R3BLYZy-p00JAbfjl8iNjIwYZ1",
     "source": "youtube",
     "type": "collection",
@@ -7099,6 +7112,18 @@
     "description": "",
     "parentId": "root",
     "majorCollection": "Synaxarion",
+    "url": "",
+    "coverUrl": "",
+    "position": 0
+  },
+  {
+    "id": "major:the-christian-life-conference-videos",
+    "source": "system",
+    "type": "major",
+    "title": "The Christian Life Conference Videos",
+    "description": "",
+    "parentId": "root",
+    "majorCollection": "The Christian Life Conference Videos",
     "url": "",
     "coverUrl": "",
     "position": 0
