@@ -37234,8 +37234,8 @@
     "assetType": "VIDEO",
     "durationSeconds": 2580.266667,
     "position": 0,
-    "depth": 2,
-    "majorCollection": "The Christian Life Conference Videos",
+    "depth": 3,
+    "majorCollection": "All Conference Videos",
     "contentType": "lecture",
     "source": "patristic_api"
   },
@@ -37253,8 +37253,8 @@
     "assetType": "VIDEO",
     "durationSeconds": 2552.033333,
     "position": 1,
-    "depth": 2,
-    "majorCollection": "The Christian Life Conference Videos",
+    "depth": 3,
+    "majorCollection": "All Conference Videos",
     "contentType": "lecture",
     "source": "patristic_api"
   },
@@ -37272,8 +37272,8 @@
     "assetType": "VIDEO",
     "durationSeconds": 2798.333333,
     "position": 2,
-    "depth": 2,
-    "majorCollection": "The Christian Life Conference Videos",
+    "depth": 3,
+    "majorCollection": "All Conference Videos",
     "contentType": "lecture",
     "source": "patristic_api"
   },
@@ -37291,8 +37291,8 @@
     "assetType": "VIDEO",
     "durationSeconds": 2799.2,
     "position": 3,
-    "depth": 2,
-    "majorCollection": "The Christian Life Conference Videos",
+    "depth": 3,
+    "majorCollection": "All Conference Videos",
     "contentType": "lecture",
     "source": "patristic_api"
   },
@@ -37310,8 +37310,8 @@
     "assetType": "VIDEO",
     "durationSeconds": 2671.433333,
     "position": 4,
-    "depth": 2,
-    "majorCollection": "The Christian Life Conference Videos",
+    "depth": 3,
+    "majorCollection": "All Conference Videos",
     "contentType": "lecture",
     "source": "patristic_api"
   },
@@ -37329,8 +37329,8 @@
     "assetType": "VIDEO",
     "durationSeconds": 2456.366667,
     "position": 5,
-    "depth": 2,
-    "majorCollection": "The Christian Life Conference Videos",
+    "depth": 3,
+    "majorCollection": "All Conference Videos",
     "contentType": "lecture",
     "source": "patristic_api"
   }

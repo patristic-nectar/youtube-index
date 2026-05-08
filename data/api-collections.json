@@ -112,20 +112,6 @@
     "source": "patristic_api"
   },
   {
-    "id": 1596,
-    "parentCollectionId": 2,
-    "collectionItemId": 13523,
-    "title": "The Christian Life Conference Videos",
-    "description": "Videos of each lecture at The Christian Life Conference.",
-    "slug": "the-christian-life-conference-videos",
-    "url": "https://app.patristicnectar.org/discover/the-christian-life-conference-videos",
-    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/lenten-retreat-square.png",
-    "position": 177759062,
-    "depth": 1,
-    "majorCollection": "The Christian Life Conference Videos",
-    "source": "patristic_api"
-  },
-  {
     "id": 1594,
     "parentCollectionId": 956,
     "collectionItemId": 13446,
@@ -6869,6 +6855,20 @@
     "url": "https://app.patristicnectar.org/discover/mother-of-god-conference-video",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/mothertn.png",
     "position": 3,
+    "depth": 2,
+    "majorCollection": "All Conference Videos",
+    "source": "patristic_api"
+  },
+  {
+    "id": 1596,
+    "parentCollectionId": 1576,
+    "collectionItemId": 13528,
+    "title": "The Christian Life Conference Videos",
+    "description": "Videos of each lecture at The Christian Life Conference.",
+    "slug": "the-christian-life-conference-videos",
+    "url": "https://app.patristicnectar.org/discover/the-christian-life-conference-videos",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/conference-videos.png",
+    "position": 103,
     "depth": 2,
     "majorCollection": "All Conference Videos",
     "source": "patristic_api"
