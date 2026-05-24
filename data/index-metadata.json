@@ -1,22 +1,22 @@
 {
-  "timestamp": "2026-05-24T08:18:55.004Z",
+  "timestamp": "2026-05-24T13:03:30.866Z",
   "collectionCount": 550,
-  "itemCount": 3461,
+  "itemCount": 3462,
   "sources": {
     "youtube": {
-      "timestamp": "2026-05-24T08:17:55.379Z",
+      "timestamp": "2026-05-24T13:02:00.387Z",
       "playlistCount": 50,
       "videoCount": 1494
     },
     "patristic_api": {
-      "timestamp": "2026-05-24T08:18:54.770Z",
+      "timestamp": "2026-05-24T13:03:30.633Z",
       "collectionCount": 491,
-      "contentCount": 1967
+      "contentCount": 1968
     }
   },
   "contentTypeCounts": {
     "video": 1494,
-    "lecture": 546,
+    "lecture": 547,
     "podcast": 1421
   }
 }
