@@ -3796,6 +3796,15 @@ function applySquarespaceColors() {
     const surfaceHover = darkenColor(surfaceColor, 8);
     const accentText = getContrastingTextColor(accentColor);
 
+    // Optional secondary accent — read from the host so brands can pass a
+    // second highlight color (e.g. a gold / yellow) alongside the primary.
+    const accentSecondaryFromHost = firstValidColor([
+      readCssColorVar(root, "--site-color-accent-secondary"),
+      readCssColorVar(root, "--accent-color-secondary"),
+      readCssColorVar(root, "--color-accent-secondary"),
+      readCssColorVar(body, "--site-color-accent-secondary"),
+    ]);
+
     // Inject CSS variables into the widget container
     const widgetContainer = document.querySelector('.pn-widget');
     if (widgetContainer) {
@@ -3809,6 +3818,9 @@ function applySquarespaceColors() {
       widgetContainer.style.setProperty('--site-color-border', borderColor);
       widgetContainer.style.setProperty('--site-color-text-secondary', textSecondary);
       widgetContainer.style.setProperty('--site-color-surface-hover', surfaceHover);
+      if (accentSecondaryFromHost) {
+        widgetContainer.style.setProperty('--site-color-accent-secondary', accentSecondaryFromHost);
+      }
 
       // Optional: Log for debugging
       if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {

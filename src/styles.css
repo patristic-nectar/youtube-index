@@ -1,13 +1,21 @@
 .pn-widget {
-  /* Widget colors - can be dynamically set via JavaScript for Squarespace integration */
+  /* Widget colors — populated at runtime by squarespace-colors.js for SS sites,
+     or directly from the host page's --site-color-* CSS variables on any other
+     host. The fallback values below are intentionally transparent / translucent
+     so the host page's own background and theme show through when nothing is
+     injected. Hosts that want the widget to paint its own opaque card surfaces
+     should set --site-color-bg / --site-color-surface explicitly. */
   --pn-primary: var(--site-color-accent, #1a73e8);
   --pn-primary-hover: var(--site-color-accent-dark, #1557b0);
-  --pn-bg: var(--site-color-bg, #ffffff);
-  --pn-surface: var(--site-color-surface, #f8f9fa);
+  --pn-bg: var(--site-color-bg, transparent);
+  --pn-surface: var(--site-color-surface, rgba(128, 128, 128, 0.08));
   --pn-primary-soft: var(--site-color-accent-light, rgba(26, 115, 232, 0.12));
-  --pn-border: var(--site-color-border, #dadce0);
-  --pn-text: var(--site-color-text, #202124);
-  --pn-text-secondary: var(--site-color-text-secondary, #5f6368);
+  --pn-border: var(--site-color-border, rgba(128, 128, 128, 0.25));
+  --pn-text: var(--site-color-text, inherit);
+  --pn-text-secondary: var(--site-color-text-secondary, rgba(128, 128, 128, 0.9));
+  /* Secondary accent for highlights/counts — falls back to primary if host
+     doesn't provide a separate brand color. */
+  --pn-accent-secondary: var(--site-color-accent-secondary, var(--pn-primary));
   --pn-error: #d93025;
   --pn-space-xs: 0.25rem;
   --pn-space-sm: 0.5rem;
@@ -16,7 +24,7 @@
   --pn-space-xl: 2rem;
   --pn-radius: 8px;
   --pn-radius-sm: 4px;
-  --pn-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --pn-font-family: var(--site-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif);
 
   font-family: var(--pn-font-family);
   color: var(--pn-text);
