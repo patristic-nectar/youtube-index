@@ -1,5 +1,18 @@
 [
   {
+    "id": "pat:collection:1598",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "Ask Father Josiah",
+    "description": "Brief pastoral Q&A segments where Fr. Josiah Trenham responds to practical spiritual struggles and everyday moral questions with Orthodox Christian guidance.",
+    "parentId": "major:ask-father-josiah",
+    "majorCollection": "Ask Father Josiah",
+    "url": "https://app.patristicnectar.org/discover/ask-father-josiah-2",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/youtube-playlist-banner.jpeg",
+    "position": 112,
+    "sourceId": "1598"
+  },
+  {
     "id": "yt:collection:PLuPBy_6R3BLZmobOkWaMOZuz3hjYWc-0q",
     "source": "youtube",
     "type": "collection",
@@ -7031,6 +7044,18 @@
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/workstilllight.png",
     "position": 106,
     "sourceId": "1027"
+  },
+  {
+    "id": "major:ask-father-josiah",
+    "source": "system",
+    "type": "major",
+    "title": "Ask Father Josiah",
+    "description": "",
+    "parentId": "root",
+    "majorCollection": "Ask Father Josiah",
+    "url": "",
+    "coverUrl": "",
+    "position": 0
   },
   {
     "id": "major:collections",
