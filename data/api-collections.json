@@ -1526,6 +1526,20 @@
     "source": "patristic_api"
   },
   {
+    "id": 1597,
+    "parentCollectionId": 956,
+    "collectionItemId": 13549,
+    "title": "The Ecumenical Councils: Guarding the Christian Faith",
+    "description": "Patristic Nectar is pleased to present a new 8 lecture series by Father Josiah Trenham entitled The Ecumenical Councils: Guarding the Christian Faith. The Orthodox Catholic Faith is a revelation from the Holy Trinity that upholds the entire universe. Throughout the history of the Church the true faith has been attacked by heresies, what St. Paul calls, the &ldquo;doctrines of demons.&rdquo; The Holy Church has definitively rejected these heresies and affirmed the true faith through her ecumenical councils. The dogmatic definitions and the canon laws of the ecumenical councils are understood to be inspired by God and expressive of His will for mankind. As such they are foundational sources of the doctrine and practice of the one, holy, catholic and apostolic Church. Lectur #1 The First Ecumenical Council in Nicea, AD 325 Lecture #2 The Second Ecumenical Council in Constantinople, AD 381 and the Third Ecumenical Council in Ephesus, AD 431 Lecture #3 The Fourth Ecumenical Council in Chalcedon, AD 451 Lecture #4 The Fifth Ecumenical Council in Constantinople II, AD 553 and the Sixth Ecumenical Council in Constantinople III, AD 680 Lecture #5 The Seventh Ecumenical Council in Nicea II, AD 787 Lecture #6 The Eight Ecumenical Council in Constantinople IV, AD 879-880 Lecture #7 The Great and Holy Synod in Constantinople V, AD 1351 Lecture #8 The Great and Holy Synod in Constantinople VI, AD 1484",
+    "slug": "the-ecumenical-councils-guarding-the-christian-faith",
+    "url": "https://app.patristicnectar.org/discover/the-ecumenical-councils-guarding-the-christian-faith",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/ecumenicalcouncils.png",
+    "position": 207,
+    "depth": 2,
+    "majorCollection": "Theological Lectures",
+    "source": "patristic_api"
+  },
+  {
     "id": 1053,
     "parentCollectionId": 1052,
     "collectionItemId": 9902,
