@@ -126,6 +126,20 @@
     "source": "patristic_api"
   },
   {
+    "id": 1597,
+    "parentCollectionId": 956,
+    "collectionItemId": 13549,
+    "title": "The Ecumenical Councils: Guarding the Christian Faith",
+    "description": "Patristic Nectar is pleased to present a new 8 lecture series by Father Josiah Trenham entitled The Ecumenical Councils: Guarding the Christian Faith. The Orthodox Catholic Faith is a revelation from the Holy Trinity that upholds the entire universe. Throughout the history of the Church the true faith has been attacked by heresies, what St. Paul calls, the &ldquo;doctrines of demons.&rdquo; The Holy Church has definitively rejected these heresies and affirmed the true faith through her ecumenical councils. The dogmatic definitions and the canon laws of the ecumenical councils are understood to be inspired by God and expressive of His will for mankind. As such they are foundational sources of the doctrine and practice of the one, holy, catholic and apostolic Church. Lecture #1 The First Ecumenical Council in Nicea, AD 325 Lecture #2 The Second Ecumenical Council in Constantinople, AD 381 and the Third Ecumenical Council in Ephesus, AD 431 Lecture #3 The Fourth Ecumenical Council in Chalcedon, AD 451 Lecture #4 The Fifth Ecumenical Council in Constantinople II, AD 553 and the Sixth Ecumenical Council in Constantinople III, AD 680 Lecture #5 The Seventh Ecumenical Council in Nicea II, AD 787 Lecture #6 The Eight Ecumenical Council in Constantinople IV, AD 879-880 Lecture #7 The Great and Holy Synod in Constantinople V, AD 1351 Lecture #8 The Great and Holy Synod in Constantinople VI, AD 1484",
+    "slug": "the-ecumenical-councils-guarding-the-christian-faith",
+    "url": "https://app.patristicnectar.org/discover/the-ecumenical-councils-guarding-the-christian-faith",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/ecumenicalcouncils.png",
+    "position": 50,
+    "depth": 2,
+    "majorCollection": "Theological Lectures",
+    "source": "patristic_api"
+  },
+  {
     "id": 1594,
     "parentCollectionId": 956,
     "collectionItemId": 13446,
@@ -134,7 +148,7 @@
     "slug": "gods-gift-to-the-west-the-life-and-teachings-of-st-nikolai-velimirovich",
     "url": "https://app.patristicnectar.org/discover/gods-gift-to-the-west-the-life-and-teachings-of-st-nikolai-velimirovich",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/square-ggttw.jpg",
-    "position": 0,
+    "position": 100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -148,7 +162,7 @@
     "slug": "the-supremacy-of-jesus-christ-an-exposition-of-saint-pauls-epistle-to-the-hebrews",
     "url": "https://app.patristicnectar.org/discover/the-supremacy-of-jesus-christ-an-exposition-of-saint-pauls-epistle-to-the-hebrews",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/supremacy-of-jesus.png",
-    "position": 1,
+    "position": 200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -162,7 +176,7 @@
     "slug": "new-saints-and-elders-the-miracle-of-modern-holiness",
     "url": "https://app.patristicnectar.org/discover/new-saints-and-elders-the-miracle-of-modern-holiness",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/newsaintsandelders.jpeg",
-    "position": 2,
+    "position": 300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -176,7 +190,7 @@
     "slug": "humility-acquiring-the-heart-of-jesus",
     "url": "https://app.patristicnectar.org/discover/humility-acquiring-the-heart-of-jesus",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/acquiringsquare.PNG",
-    "position": 3,
+    "position": 400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -190,7 +204,7 @@
     "slug": "churchmanship",
     "url": "https://app.patristicnectar.org/discover/churchmanship",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/c75cdce2-576e-4ee5-b1b7-50df411a3fe7.jpg",
-    "position": 4,
+    "position": 500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -204,7 +218,7 @@
     "slug": "the-father-of-the-faithful-the-life-of-the-holy-patriarch-abraham",
     "url": "https://app.patristicnectar.org/discover/the-father-of-the-faithful-the-life-of-the-holy-patriarch-abraham",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/AbrahamSquare.jpeg",
-    "position": 5,
+    "position": 600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -218,7 +232,7 @@
     "slug": "the-seven-last-words-of-jesus-from-the-cross",
     "url": "https://app.patristicnectar.org/discover/the-seven-last-words-of-jesus-from-the-cross",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/SevenWordsSquare.jpg",
-    "position": 6,
+    "position": 700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -232,7 +246,7 @@
     "slug": "sacred-canons",
     "url": "https://app.patristicnectar.org/discover/sacred-canons",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/SacredCanons.jpg",
-    "position": 7,
+    "position": 800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -246,7 +260,7 @@
     "slug": "war-and-peace-the-orthodox-perspective-on-violence",
     "url": "https://app.patristicnectar.org/discover/war-and-peace-the-orthodox-perspective-on-violence",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/WarPeaceSquare.jpg",
-    "position": 8,
+    "position": 900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -260,7 +274,7 @@
     "slug": "sacred-art-conference",
     "url": "https://app.patristicnectar.org/discover/sacred-art-conference",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/Sacred-Arts-Square.jpg",
-    "position": 9,
+    "position": 1000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -274,7 +288,7 @@
     "slug": "the-original-church",
     "url": "https://app.patristicnectar.org/discover/the-original-church",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/Original-Church.jpeg",
-    "position": 10,
+    "position": 1100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -288,7 +302,7 @@
     "slug": "the-holy-trinity-by-fr-thomas-hopko",
     "url": "https://app.patristicnectar.org/discover/the-holy-trinity-by-fr-thomas-hopko",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/HopkoImage.jpg",
-    "position": 11,
+    "position": 1200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -302,7 +316,7 @@
     "slug": "demonology-understanding-and-winning-the-spiritual-battle",
     "url": "https://app.patristicnectar.org/discover/demonology-understanding-and-winning-the-spiritual-battle",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/demonology-square.jpg",
-    "position": 12,
+    "position": 1300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -316,7 +330,7 @@
     "slug": "the-nicene-creed-an-introduction",
     "url": "https://app.patristicnectar.org/discover/the-nicene-creed-an-introduction",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-nicene-creed-square.png",
-    "position": 13,
+    "position": 1400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -330,7 +344,7 @@
     "slug": "origins-creationism-evolution-and-an-orthodox-theology-of-creation",
     "url": "https://app.patristicnectar.org/discover/origins-creationism-evolution-and-an-orthodox-theology-of-creation",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/origins-v2-square-2.jpg",
-    "position": 14,
+    "position": 1500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -344,7 +358,7 @@
     "slug": "yielded-to-god-the-life-and-teaching-of-saint-seraphim-of-sarov",
     "url": "https://app.patristicnectar.org/discover/yielded-to-god-the-life-and-teaching-of-saint-seraphim-of-sarov",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/stseraphimsarov-square.png",
-    "position": 15,
+    "position": 1600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -358,7 +372,7 @@
     "slug": "let-everything-that-hath-breath-praise-the-lord-the-psalms-in-the-divine-services",
     "url": "https://app.patristicnectar.org/discover/let-everything-that-hath-breath-praise-the-lord-the-psalms-in-the-divine-services",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/let-every-breath-square.png",
-    "position": 16,
+    "position": 1700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -372,7 +386,7 @@
     "slug": "my-life-in-christ-the-life-and-teaching-of-saint-john-of-kronstadt",
     "url": "https://app.patristicnectar.org/discover/my-life-in-christ-the-life-and-teaching-of-saint-john-of-kronstadt",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/my-life-in-christ-st-john-of-kronstadt-square.jpg",
-    "position": 17,
+    "position": 1800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -386,7 +400,7 @@
     "slug": "sirach-fashioning-a-life-of-wisdom",
     "url": "https://app.patristicnectar.org/discover/sirach-fashioning-a-life-of-wisdom",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/sirach-square.jpg",
-    "position": 18,
+    "position": 1900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -400,7 +414,7 @@
     "slug": "humility-and-the-life-of-st-silouan-by-bishop-basil",
     "url": "https://app.patristicnectar.org/discover/humility-and-the-life-of-st-silouan-by-bishop-basil",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/humility-and-the-life-of-st-silouan-bishop-basil-square-copy.JPEG",
-    "position": 19,
+    "position": 2000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -414,7 +428,7 @@
     "slug": "heaven-our-true-home",
     "url": "https://app.patristicnectar.org/discover/heaven-our-true-home",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/heaven-our-true-home-square.jpg",
-    "position": 20,
+    "position": 2100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -428,7 +442,7 @@
     "slug": "holy-orthodoxy-presenting-the-christian-faith",
     "url": "https://app.patristicnectar.org/discover/holy-orthodoxy-presenting-the-christian-faith",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/2022-conference-square.png",
-    "position": 21,
+    "position": 2200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -442,7 +456,7 @@
     "slug": "family-life-following-jesus-christ-in-your-home",
     "url": "https://app.patristicnectar.org/discover/family-life-following-jesus-christ-in-your-home",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/FamilySquare.jpg",
-    "position": 22,
+    "position": 2300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -456,7 +470,7 @@
     "slug": "the-divine-identity-of-christ-seven-lectures-by-father-calinic-berger",
     "url": "https://app.patristicnectar.org/discover/the-divine-identity-of-christ-seven-lectures-by-father-calinic-berger",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/divine-identity-of-christ-square-web.jpg",
-    "position": 23,
+    "position": 2400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -470,7 +484,7 @@
     "slug": "theological-foundations-god-man-and-the-world",
     "url": "https://app.patristicnectar.org/discover/theological-foundations-god-man-and-the-world",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/creation-and-fall-squarev2.jpg",
-    "position": 24,
+    "position": 2500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -484,7 +498,7 @@
     "slug": "male-and-female-reflections-on-transgenderism",
     "url": "https://app.patristicnectar.org/discover/male-and-female-reflections-on-transgenderism",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/male-and-female-reflections-on-transgenderism-square.jpg",
-    "position": 25,
+    "position": 2600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -498,7 +512,7 @@
     "slug": "gods-prodigal-prophet-an-exposition-of-the-prophecy-of-jonah",
     "url": "https://app.patristicnectar.org/discover/gods-prodigal-prophet-an-exposition-of-the-prophecy-of-jonah",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/gods-prodigal-prophet-square.jpg",
-    "position": 26,
+    "position": 2700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -512,7 +526,7 @@
     "slug": "the-mother-of-god-in-our-lives",
     "url": "https://app.patristicnectar.org/discover/the-mother-of-god-in-our-lives",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/mother-of-god-in-our-lives-sq.jpg",
-    "position": 27,
+    "position": 2800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -526,7 +540,7 @@
     "slug": "the-gospel-revealed-an-exposition-of-st-pauls-epistle-to-the-romans",
     "url": "https://app.patristicnectar.org/discover/the-gospel-revealed-an-exposition-of-st-pauls-epistle-to-the-romans",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/gospel-revealed-square.png",
-    "position": 28,
+    "position": 2900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -540,7 +554,7 @@
     "slug": "contemporary-women-saints",
     "url": "https://app.patristicnectar.org/discover/contemporary-women-saints",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/contemporary-women-saints-square.png",
-    "position": 29,
+    "position": 3000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -554,7 +568,7 @@
     "slug": "good-deeds-cultivating-a-life-of-virtue",
     "url": "https://app.patristicnectar.org/discover/good-deeds-cultivating-a-life-of-virtue",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/good-deeds-square-small.PNG",
-    "position": 30,
+    "position": 3100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -568,7 +582,7 @@
     "slug": "antichrists-of-the-20th-century",
     "url": "https://app.patristicnectar.org/discover/antichrists-of-the-20th-century",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/6.png",
-    "position": 31,
+    "position": 3200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -582,7 +596,7 @@
     "slug": "walk-in-love-an-exposition-of-1st-3rd-john",
     "url": "https://app.patristicnectar.org/discover/walk-in-love-an-exposition-of-1st-3rd-john",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/walk-in-love-an-exposition-of-1-3-john.jpg",
-    "position": 32,
+    "position": 3300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -596,7 +610,7 @@
     "slug": "hope-and-encouragement-for-a-suffering-church-an-exposition-of-1-2-peter",
     "url": "https://app.patristicnectar.org/discover/hope-and-encouragement-for-a-suffering-church-an-exposition-of-1-2-peter",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/hope-and-encouragement-for-a-suffering-church-500x500.jpg",
-    "position": 33,
+    "position": 3400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -610,7 +624,7 @@
     "slug": "the-life-and-teaching-of-st-basil-the-great",
     "url": "https://app.patristicnectar.org/discover/the-life-and-teaching-of-st-basil-the-great",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/thelifeandteachingofstbasil.png",
-    "position": 34,
+    "position": 3500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -624,7 +638,7 @@
     "slug": "breaking-the-twin-shackles-overcoming-anger-and-despair-in-the-spiritual-struggle",
     "url": "https://app.patristicnectar.org/discover/breaking-the-twin-shackles-overcoming-anger-and-despair-in-the-spiritual-struggle",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/breakingshackles.png",
-    "position": 36,
+    "position": 3700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -638,7 +652,7 @@
     "slug": "o-heavenly-king-reflections-on-the-holy-spirit",
     "url": "https://app.patristicnectar.org/discover/o-heavenly-king-reflections-on-the-holy-spirit",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/o-heavenly-king-500-x-500-sku-ls0071-rev.jpg",
-    "position": 37,
+    "position": 3800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -652,7 +666,7 @@
     "slug": "wisdom-for-family-life",
     "url": "https://app.patristicnectar.org/discover/wisdom-for-family-life",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/wisdom-for-families-500x500.jpg",
-    "position": 38,
+    "position": 3900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -666,7 +680,7 @@
     "slug": "contend-for-the-faith-an-exposition-of-jude",
     "url": "https://app.patristicnectar.org/discover/contend-for-the-faith-an-exposition-of-jude",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/contend-for-the-faith.jpg",
-    "position": 39,
+    "position": 4000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -680,7 +694,7 @@
     "slug": "confession-and-spiritual-direction",
     "url": "https://app.patristicnectar.org/discover/confession-and-spiritual-direction",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/confessspiritualdirection.png",
-    "position": 40,
+    "position": 4100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -694,7 +708,7 @@
     "slug": "master-or-slave-technology-in-the-christian-life",
     "url": "https://app.patristicnectar.org/discover/master-or-slave-technology-in-the-christian-life",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/masterorslavetechnology.png",
-    "position": 41,
+    "position": 4200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -708,7 +722,7 @@
     "slug": "true-love-gods-purposes-for-marriage",
     "url": "https://app.patristicnectar.org/discover/true-love-gods-purposes-for-marriage",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/true-love-gods-purpose-for-marriage-sku-ls066.jpg",
-    "position": 42,
+    "position": 4300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -722,7 +736,7 @@
     "slug": "you-belong-to-christ-an-exposition-of-first-corinthians",
     "url": "https://app.patristicnectar.org/discover/you-belong-to-christ-an-exposition-of-first-corinthians",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/you-belong-to-christ-sku-ls065-updated.jpg",
-    "position": 43,
+    "position": 4400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -736,7 +750,7 @@
     "slug": "divine-energy-saving-transformation-in-jesus-christ",
     "url": "https://app.patristicnectar.org/discover/divine-energy-saving-transformation-in-jesus-christ",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/divineenergy.png",
-    "position": 44,
+    "position": 4500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -750,7 +764,7 @@
     "slug": "prayer-and-salvation",
     "url": "https://app.patristicnectar.org/discover/prayer-and-salvation",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/prayerandsalvation.png",
-    "position": 45,
+    "position": 4600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -764,7 +778,7 @@
     "slug": "patriotism-the-duty-of-a-christian-to-his-nation",
     "url": "https://app.patristicnectar.org/discover/patriotism-the-duty-of-a-christian-to-his-nation",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/patriotsquare.png",
-    "position": 46,
+    "position": 4700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -778,7 +792,7 @@
     "slug": "riches-in-christ-an-exposition-of-the-epistle-of-st-paul-to-the-ephesians",
     "url": "https://app.patristicnectar.org/discover/riches-in-christ-an-exposition-of-the-epistle-of-st-paul-to-the-ephesians",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/riches-in-christ-sku-ls060-updated.jpg",
-    "position": 48,
+    "position": 4900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -792,7 +806,7 @@
     "slug": "forgiveness-balm-for-the-heart",
     "url": "https://app.patristicnectar.org/discover/forgiveness-balm-for-the-heart",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/forgivebalm.png",
-    "position": 49,
+    "position": 5000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -806,7 +820,7 @@
     "slug": "concentrated-prayer-praying-as-an-expression-of-love-for-god",
     "url": "https://app.patristicnectar.org/discover/concentrated-prayer-praying-as-an-expression-of-love-for-god",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/concentratedprayer.png",
-    "position": 50,
+    "position": 5100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -820,7 +834,7 @@
     "slug": "the-parables-of-jesus-revealing-the-mysteries-of-the-kingdom",
     "url": "https://app.patristicnectar.org/discover/the-parables-of-jesus-revealing-the-mysteries-of-the-kingdom",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-parables-of-jesus-revealing-the-mysteries-of-the-kingdom-sku-ls057-updated.jpg",
-    "position": 51,
+    "position": 5200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -834,7 +848,7 @@
     "slug": "works-the-offspring-of-faith-an-exposition-of-the-epistle-of-st-james",
     "url": "https://app.patristicnectar.org/discover/works-the-offspring-of-faith-an-exposition-of-the-epistle-of-st-james",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/works-the-offspring-of-faith-500x500.jpg",
-    "position": 52,
+    "position": 5300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -848,7 +862,7 @@
     "slug": "loving-god-without-fear",
     "url": "https://app.patristicnectar.org/discover/loving-god-without-fear",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/lovinggodwithoutfear.png",
-    "position": 53,
+    "position": 5400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -862,7 +876,7 @@
     "slug": "the-prayer-rule",
     "url": "https://app.patristicnectar.org/discover/the-prayer-rule",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-prayer-rule-sku-ls053-updated.jpg",
-    "position": 54,
+    "position": 5500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -876,7 +890,7 @@
     "slug": "joy-within-discomfort-thriving-amidst-anxiety-and-depression",
     "url": "https://app.patristicnectar.org/discover/joy-within-discomfort-thriving-amidst-anxiety-and-depression",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/joywithdiscomfort.png",
-    "position": 55,
+    "position": 5600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -890,7 +904,7 @@
     "slug": "lord-and-master-of-my-life-reflections-on-the-prayer-of-st-ephraim-the-syrian",
     "url": "https://app.patristicnectar.org/discover/lord-and-master-of-my-life-reflections-on-the-prayer-of-st-ephraim-the-syrian",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/lordandmasterofmylife.png",
-    "position": 56,
+    "position": 5700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -904,7 +918,7 @@
     "slug": "relationships-human-relationships-in-the-light-of-christ-and-patristic-principles-of-parenting",
     "url": "https://app.patristicnectar.org/discover/relationships-human-relationships-in-the-light-of-christ-and-patristic-principles-of-parenting",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/relationships-sku-ls050.jpg",
-    "position": 57,
+    "position": 5800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -918,7 +932,7 @@
     "slug": "the-mystery-of-the-incarnation",
     "url": "https://app.patristicnectar.org/discover/the-mystery-of-the-incarnation",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/mysteryofcarnation.png",
-    "position": 58,
+    "position": 5900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -932,7 +946,7 @@
     "slug": "counsels-on-the-holy-priesthood",
     "url": "https://app.patristicnectar.org/discover/counsels-on-the-holy-priesthood",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/counselsofholypriesthood.png",
-    "position": 59,
+    "position": 6000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -946,7 +960,7 @@
     "slug": "the-ascetical-and-pastoral-theology-of-st-silouan-the-athonite-and-archimandrite-sophrony",
     "url": "https://app.patristicnectar.org/discover/the-ascetical-and-pastoral-theology-of-st-silouan-the-athonite-and-archimandrite-sophrony",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/asceticalandpastoraltheologyofstsilouhan.png",
-    "position": 60,
+    "position": 6100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -960,7 +974,7 @@
     "slug": "the-hidden-man-of-the-heart",
     "url": "https://app.patristicnectar.org/discover/the-hidden-man-of-the-heart",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/hiddenmanofheart.png",
-    "position": 61,
+    "position": 6200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -974,7 +988,7 @@
     "slug": "vespers-our-evening-offering-to-god",
     "url": "https://app.patristicnectar.org/discover/vespers-our-evening-offering-to-god",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/vespers-sku-ls045.jpg",
-    "position": 62,
+    "position": 6300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -988,7 +1002,7 @@
     "slug": "the-pedagogy-of-grace",
     "url": "https://app.patristicnectar.org/discover/the-pedagogy-of-grace",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/thepedagogyofgrace.png",
-    "position": 63,
+    "position": 6400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1002,7 +1016,7 @@
     "slug": "christian-marriage-and-secular-culture-what-it-should-be-and-what-it-has-become",
     "url": "https://app.patristicnectar.org/discover/christian-marriage-and-secular-culture-what-it-should-be-and-what-it-has-become",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/christianmarriage.jpg",
-    "position": 64,
+    "position": 6500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1016,7 +1030,7 @@
     "slug": "joy-an-exposition-of-saint-pauls-letter-to-the-philippians",
     "url": "https://app.patristicnectar.org/discover/joy-an-exposition-of-saint-pauls-letter-to-the-philippians",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/joy-an-exposition-of-saint-pauls-letter-to-the-philippians-sku-ls042.jpg",
-    "position": 65,
+    "position": 6600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1030,7 +1044,7 @@
     "slug": "starting-down-the-royal-path-how-to-become-an-orthodox-christian",
     "url": "https://app.patristicnectar.org/discover/starting-down-the-royal-path-how-to-become-an-orthodox-christian",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/starting-down-the-royal-path-how-to-become-an-orthodox-christian-sku-ls040.jpg",
-    "position": 66,
+    "position": 6700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1044,7 +1058,7 @@
     "slug": "american-holiness-a-religious-history-of-america-and-her-saints",
     "url": "https://app.patristicnectar.org/discover/american-holiness-a-religious-history-of-america-and-her-saints",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/american-holiness-sku-ls039.jpg",
-    "position": 67,
+    "position": 6800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1058,7 +1072,7 @@
     "slug": "the-sermon-an-exposition-of-the-jesus-sermon-on-the-mount",
     "url": "https://app.patristicnectar.org/discover/the-sermon-an-exposition-of-the-jesus-sermon-on-the-mount",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-sermon-ls038-updated.jpg",
-    "position": 68,
+    "position": 6900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1072,7 +1086,7 @@
     "slug": "a-simple-heart-cultivating-simplicity-in-the-spiritual-life",
     "url": "https://app.patristicnectar.org/discover/a-simple-heart-cultivating-simplicity-in-the-spiritual-life",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/a-simple-heart-cultivating-simplicity-in-the-spiritual-life-square.jpeg",
-    "position": 69,
+    "position": 7000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1086,7 +1100,7 @@
     "slug": "sage-counsel-wisdom-for-christian-living-from-the-proverbs",
     "url": "https://app.patristicnectar.org/discover/sage-counsel-wisdom-for-christian-living-from-the-proverbs",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/LSsage.jpg",
-    "position": 70,
+    "position": 7100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1100,7 +1114,7 @@
     "slug": "the-voice-in-my-head-reflections-on-the-conscience",
     "url": "https://app.patristicnectar.org/discover/the-voice-in-my-head-reflections-on-the-conscience",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/voice-in-my-head-sku-ls035.jpg",
-    "position": 71,
+    "position": 7200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1114,7 +1128,7 @@
     "slug": "the-apostolic-fathers",
     "url": "https://app.patristicnectar.org/discover/the-apostolic-fathers",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/apostolic-fathers-sku-ls034-copy.jpg",
-    "position": 72,
+    "position": 7300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1128,7 +1142,7 @@
     "slug": "contemporary-orthodox-elders",
     "url": "https://app.patristicnectar.org/discover/contemporary-orthodox-elders",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/contemporary-orthodox-elders-500-x-500.jpg",
-    "position": 73,
+    "position": 7400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1142,7 +1156,7 @@
     "slug": "the-shepherd-and-the-sheep",
     "url": "https://app.patristicnectar.org/discover/the-shepherd-and-the-sheep",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/shepherd-and-the-sheep-sku-ls032.jpg",
-    "position": 74,
+    "position": 7500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1156,7 +1170,7 @@
     "slug": "taming-lions-the-life-and-prophecy-of-the-holy-and-righteous-daniel",
     "url": "https://app.patristicnectar.org/discover/taming-lions-the-life-and-prophecy-of-the-holy-and-righteous-daniel",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/taming-lions-sku-ls031.jpg",
-    "position": 75,
+    "position": 7600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1170,7 +1184,7 @@
     "slug": "the-life-and-teaching-of-st-maximos-the-confessor",
     "url": "https://app.patristicnectar.org/discover/the-life-and-teaching-of-st-maximos-the-confessor",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/life-and-teaching-of-st-maximos-the-confessor-sku-ls030.jpg",
-    "position": 76,
+    "position": 7700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1184,7 +1198,7 @@
     "slug": "the-christian-life-is-impossibleall-we-are-able-to-do-is-to-die-daily",
     "url": "https://app.patristicnectar.org/discover/the-christian-life-is-impossibleall-we-are-able-to-do-is-to-die-daily",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/thechristianlife.png",
-    "position": 77,
+    "position": 7800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1198,7 +1212,7 @@
     "slug": "the-three-stages-of-the-spiritual-life",
     "url": "https://app.patristicnectar.org/discover/the-three-stages-of-the-spiritual-life",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/thethreestagesofthespirituallife.png",
-    "position": 78,
+    "position": 7900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1212,7 +1226,7 @@
     "slug": "personhood-in-the-life-and-ministry-of-elder-sophrony-sakharov",
     "url": "https://app.patristicnectar.org/discover/personhood-in-the-life-and-ministry-of-elder-sophrony-sakharov",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/personhoodinthelifeandministry.png",
-    "position": 79,
+    "position": 8000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1226,7 +1240,7 @@
     "slug": "lessons-from-the-lives-of-ss-peter-and-paul",
     "url": "https://app.patristicnectar.org/discover/lessons-from-the-lives-of-ss-peter-and-paul",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/lessonspeterpaul.png",
-    "position": 80,
+    "position": 8100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1240,7 +1254,7 @@
     "slug": "job-lessons-on-faith-wisdom-and-suffering",
     "url": "https://app.patristicnectar.org/discover/job-lessons-on-faith-wisdom-and-suffering",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/LSJob.jpg",
-    "position": 81,
+    "position": 8200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1254,7 +1268,7 @@
     "slug": "apocalypse-soon",
     "url": "https://app.patristicnectar.org/discover/apocalypse-soon",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/apocalypsesoon.png",
-    "position": 82,
+    "position": 8300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1268,7 +1282,7 @@
     "slug": "saints-sanctity-and-the-life-of-st-raphael-of-brooklyn",
     "url": "https://app.patristicnectar.org/discover/saints-sanctity-and-the-life-of-st-raphael-of-brooklyn",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/saints-sanctity-and-the-life-of-st-raphael-of-brooklyn-sku-ls023.jpg",
-    "position": 83,
+    "position": 8400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1282,7 +1296,7 @@
     "slug": "drive-how-to-save-your-soul-in-traffic",
     "url": "https://app.patristicnectar.org/discover/drive-how-to-save-your-soul-in-traffic",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/drivehowtosaveyoursoul.png",
-    "position": 84,
+    "position": 8500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1296,7 +1310,7 @@
     "slug": "prayer-of-the-heart-in-an-age-of-technology-and-distractions",
     "url": "https://app.patristicnectar.org/discover/prayer-of-the-heart-in-an-age-of-technology-and-distractions",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/prayeroftheheart.png",
-    "position": 85,
+    "position": 8600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1310,7 +1324,7 @@
     "slug": "a-heart-for-god-lessons-from-the-life-of-the-holy-king-and-prophet-david",
     "url": "https://app.patristicnectar.org/discover/a-heart-for-god-lessons-from-the-life-of-the-holy-king-and-prophet-david",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/a-heart-for-god-lessons-from-the-life-of-the-holy-prophet-and-king-david-square.jpeg",
-    "position": 86,
+    "position": 8700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1324,7 +1338,7 @@
     "slug": "the-desert-fathers",
     "url": "https://app.patristicnectar.org/discover/the-desert-fathers",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/desert-fathers-sku-ls018.jpg",
-    "position": 87,
+    "position": 8800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1338,7 +1352,7 @@
     "slug": "an-orthodox-catechism",
     "url": "https://app.patristicnectar.org/discover/an-orthodox-catechism",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/anorthodoxcatechism.png",
-    "position": 88,
+    "position": 8900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1352,7 +1366,7 @@
     "slug": "soul-cleansing-the-mystery-of-confession",
     "url": "https://app.patristicnectar.org/discover/soul-cleansing-the-mystery-of-confession",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/soulcleansing.png",
-    "position": 89,
+    "position": 9000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1366,7 +1380,7 @@
     "slug": "the-beatitudes",
     "url": "https://app.patristicnectar.org/discover/the-beatitudes",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-beatitudes-sku-ls015-updated.jpg",
-    "position": 90,
+    "position": 9100,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1380,7 +1394,7 @@
     "slug": "the-good-wife-five-lectures-on-the-christian-ideal",
     "url": "https://app.patristicnectar.org/discover/the-good-wife-five-lectures-on-the-christian-ideal",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/goodwife.jpg",
-    "position": 92,
+    "position": 9300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1394,7 +1408,7 @@
     "slug": "the-good-husband-five-lectures-on-the-christian-ideal",
     "url": "https://app.patristicnectar.org/discover/the-good-husband-five-lectures-on-the-christian-ideal",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-good-husband.jpg",
-    "position": 93,
+    "position": 9400,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1408,7 +1422,7 @@
     "slug": "the-bible-and-the-church",
     "url": "https://app.patristicnectar.org/discover/the-bible-and-the-church",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-bible-and-the-church-sku-ls011updated.jpg",
-    "position": 94,
+    "position": 9500,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1422,7 +1436,7 @@
     "slug": "healing-our-diseases-the-church-as-a-spiritual-hospital",
     "url": "https://app.patristicnectar.org/discover/healing-our-diseases-the-church-as-a-spiritual-hospital",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/healing-our-diseases-sku-ls010-updated.jpg",
-    "position": 95,
+    "position": 9600,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1436,7 +1450,7 @@
     "slug": "a-christian-ending-to-our-lives-death-funeral-burial-and-memorials-in-the-orthodox-christian-tradition",
     "url": "https://app.patristicnectar.org/discover/a-christian-ending-to-our-lives-death-funeral-burial-and-memorials-in-the-orthodox-christian-tradition",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/a-christian-ending-sku-ls009.jpg",
-    "position": 96,
+    "position": 9700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1450,7 +1464,7 @@
     "slug": "do-this-and-you-shall-live-an-exposition-of-the-ten-commandments-for-the-21st-century",
     "url": "https://app.patristicnectar.org/discover/do-this-and-you-shall-live-an-exposition-of-the-ten-commandments-for-the-21st-century",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/do-this-and-live-sku-ls008-updated.jpg",
-    "position": 97,
+    "position": 9800,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1464,7 +1478,7 @@
     "slug": "gods-statesmen-pious-christian-kings",
     "url": "https://app.patristicnectar.org/discover/gods-statesmen-pious-christian-kings",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/godsstatesman.png",
-    "position": 98,
+    "position": 9900,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1478,7 +1492,7 @@
     "slug": "love-the-most-excellent-way-an-exposition-of-1-corinthians-13",
     "url": "https://app.patristicnectar.org/discover/love-the-most-excellent-way-an-exposition-of-1-corinthians-13",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/love-the-most-excellent-way-sku-ls006.jpg",
-    "position": 99,
+    "position": 10000,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1492,7 +1506,7 @@
     "slug": "the-doctrines-of-demons-a-history-of-early-heresy",
     "url": "https://app.patristicnectar.org/discover/the-doctrines-of-demons-a-history-of-early-heresy",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/doctrines-of-demons-sku-ls004.jpg",
-    "position": 101,
+    "position": 10200,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1506,7 +1520,7 @@
     "slug": "orthodox-worship-and-the-divine-liturgy",
     "url": "https://app.patristicnectar.org/discover/orthodox-worship-and-the-divine-liturgy",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/orthodox-worship-and-divine-liturgy-sku-ls002-updated.jpg",
-    "position": 102,
+    "position": 10300,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
@@ -1520,21 +1534,7 @@
     "slug": "work-while-it-is-still-light",
     "url": "https://app.patristicnectar.org/discover/work-while-it-is-still-light",
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/workstilllight.png",
-    "position": 106,
-    "depth": 2,
-    "majorCollection": "Theological Lectures",
-    "source": "patristic_api"
-  },
-  {
-    "id": 1597,
-    "parentCollectionId": 956,
-    "collectionItemId": 13549,
-    "title": "The Ecumenical Councils: Guarding the Christian Faith",
-    "description": "Patristic Nectar is pleased to present a new 8 lecture series by Father Josiah Trenham entitled The Ecumenical Councils: Guarding the Christian Faith. The Orthodox Catholic Faith is a revelation from the Holy Trinity that upholds the entire universe. Throughout the history of the Church the true faith has been attacked by heresies, what St. Paul calls, the &ldquo;doctrines of demons.&rdquo; The Holy Church has definitively rejected these heresies and affirmed the true faith through her ecumenical councils. The dogmatic definitions and the canon laws of the ecumenical councils are understood to be inspired by God and expressive of His will for mankind. As such they are foundational sources of the doctrine and practice of the one, holy, catholic and apostolic Church. Lectur #1 The First Ecumenical Council in Nicea, AD 325 Lecture #2 The Second Ecumenical Council in Constantinople, AD 381 and the Third Ecumenical Council in Ephesus, AD 431 Lecture #3 The Fourth Ecumenical Council in Chalcedon, AD 451 Lecture #4 The Fifth Ecumenical Council in Constantinople II, AD 553 and the Sixth Ecumenical Council in Constantinople III, AD 680 Lecture #5 The Seventh Ecumenical Council in Nicea II, AD 787 Lecture #6 The Eight Ecumenical Council in Constantinople IV, AD 879-880 Lecture #7 The Great and Holy Synod in Constantinople V, AD 1351 Lecture #8 The Great and Holy Synod in Constantinople VI, AD 1484",
-    "slug": "the-ecumenical-councils-guarding-the-christian-faith",
-    "url": "https://app.patristicnectar.org/discover/the-ecumenical-councils-guarding-the-christian-faith",
-    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/ecumenicalcouncils.png",
-    "position": 207,
+    "position": 10700,
     "depth": 2,
     "majorCollection": "Theological Lectures",
     "source": "patristic_api"
