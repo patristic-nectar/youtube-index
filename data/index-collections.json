@@ -359,7 +359,7 @@
     "parentId": "major:speakers",
     "majorCollection": "Speakers",
     "url": "https://www.youtube.com/playlist?list=PLuPBy_6R3BLa34h1qwN5jbsGWZT2Rgb8h",
-    "coverUrl": "https://i.ytimg.com/vi/sA1ohUnhzNE/mqdefault.jpg",
+    "coverUrl": "https://i.ytimg.com/vi/3qfSjM-JLCY/mqdefault.jpg",
     "position": 0,
     "sourceId": "PLuPBy_6R3BLa34h1qwN5jbsGWZT2Rgb8h"
   },
@@ -398,7 +398,7 @@
     "parentId": "major:topics",
     "majorCollection": "Topics",
     "url": "https://www.youtube.com/playlist?list=PLuPBy_6R3BLYZy-p00JAbfjl8iNjIwYZ1",
-    "coverUrl": "https://i.ytimg.com/vi/-N_ynK7AyPc/mqdefault.jpg",
+    "coverUrl": "https://i.ytimg.com/vi/3qfSjM-JLCY/mqdefault.jpg",
     "position": 0,
     "sourceId": "PLuPBy_6R3BLYZy-p00JAbfjl8iNjIwYZ1"
   },
@@ -424,7 +424,7 @@
     "parentId": "major:topics",
     "majorCollection": "Topics",
     "url": "https://www.youtube.com/playlist?list=PLuPBy_6R3BLaW_k7pC7b6P1A3beUfAH7H",
-    "coverUrl": "https://i.ytimg.com/vi/sA1ohUnhzNE/mqdefault.jpg",
+    "coverUrl": "https://i.ytimg.com/vi/3qfSjM-JLCY/mqdefault.jpg",
     "position": 0,
     "sourceId": "PLuPBy_6R3BLaW_k7pC7b6P1A3beUfAH7H"
   },
@@ -515,7 +515,7 @@
     "parentId": "major:topics",
     "majorCollection": "Topics",
     "url": "https://www.youtube.com/playlist?list=PLuPBy_6R3BLbp0R3nTT-2HuICMIp93UEz",
-    "coverUrl": "https://i.ytimg.com/vi/sA1ohUnhzNE/mqdefault.jpg",
+    "coverUrl": "https://i.ytimg.com/vi/3qfSjM-JLCY/mqdefault.jpg",
     "position": 0,
     "sourceId": "PLuPBy_6R3BLbp0R3nTT-2HuICMIp93UEz"
   },
@@ -619,7 +619,7 @@
     "parentId": "major:topics",
     "majorCollection": "Topics",
     "url": "https://www.youtube.com/playlist?list=PLuPBy_6R3BLY23qAClhU8_68p5Z8nFLI-",
-    "coverUrl": "https://i.ytimg.com/vi/sA1ohUnhzNE/mqdefault.jpg",
+    "coverUrl": "https://i.ytimg.com/vi/3qfSjM-JLCY/mqdefault.jpg",
     "position": 0,
     "sourceId": "PLuPBy_6R3BLY23qAClhU8_68p5Z8nFLI-"
   },
@@ -5744,6 +5744,19 @@
     "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/conferencevideobanner.jpeg",
     "position": 103,
     "sourceId": "1596"
+  },
+  {
+    "id": "pat:collection:1599",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "The Seven Signs of Jesus",
+    "description": "Patristic Nectar is pleased to present a new six-lecture series by Father Josiah entitled The Seven Signs of Jesus. St. John the Apostle and Theologian, Jesus&rsquo; beloved disciple, wrote his magnificent Gospel in an exceedingly unique way in which he highlighted seven great sign-miracles of Christ in order that the readers might &ldquo;believe that Jesus is the Christ, the Son of God, and that believing find life in His Name.&rdquo; (Jn. 20:31) In this series Fr. Josiah exposits the first half of the Gospel &ndash; Chs. 1-12 &ndash; where St. John sets forth these amazing miracles, and explains what the sign or message of each miracle is.",
+    "parentId": "pat:collection:956",
+    "majorCollection": "Lectures",
+    "url": "https://app.patristicnectar.org/discover/the-seven-signs-of-jesus",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-seven-signs-of-jesus.jpg",
+    "position": 25,
+    "sourceId": "1599"
   },
   {
     "id": "pat:collection:1597",

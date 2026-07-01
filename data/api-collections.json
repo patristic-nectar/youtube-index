@@ -126,6 +126,20 @@
     "source": "patristic_api"
   },
   {
+    "id": 1599,
+    "parentCollectionId": 956,
+    "collectionItemId": 13570,
+    "title": "The Seven Signs of Jesus",
+    "description": "Patristic Nectar is pleased to present a new six-lecture series by Father Josiah entitled The Seven Signs of Jesus. St. John the Apostle and Theologian, Jesus&rsquo; beloved disciple, wrote his magnificent Gospel in an exceedingly unique way in which he highlighted seven great sign-miracles of Christ in order that the readers might &ldquo;believe that Jesus is the Christ, the Son of God, and that believing find life in His Name.&rdquo; (Jn. 20:31) In this series Fr. Josiah exposits the first half of the Gospel &ndash; Chs. 1-12 &ndash; where St. John sets forth these amazing miracles, and explains what the sign or message of each miracle is.",
+    "slug": "the-seven-signs-of-jesus",
+    "url": "https://app.patristicnectar.org/discover/the-seven-signs-of-jesus",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/the-seven-signs-of-jesus.jpg",
+    "position": 25,
+    "depth": 2,
+    "majorCollection": "Theological Lectures",
+    "source": "patristic_api"
+  },
+  {
     "id": 1597,
     "parentCollectionId": 956,
     "collectionItemId": 13549,
