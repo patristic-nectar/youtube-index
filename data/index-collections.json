@@ -130,6 +130,19 @@
     "sourceId": "PLuPBy_6R3BLaXjoPlhxAzhs-L8GBD8s3Z"
   },
   {
+    "id": "pat:collection:1600",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "Hidden Homepage Items",
+    "description": "Hidden Homepage Items. This collection can be used to make content searchable that is not directly added to the homepage tree. Do not delete.",
+    "parentId": "major:hidden-homepage-items",
+    "majorCollection": "Hidden Homepage Items",
+    "url": "https://app.patristicnectar.org/discover/hidden-homepage-items",
+    "coverUrl": "",
+    "position": 212,
+    "sourceId": "1600"
+  },
+  {
     "id": "pat:collection:1592",
     "source": "patristic_api",
     "type": "collection",
@@ -7103,6 +7116,18 @@
     "description": "",
     "parentId": "root",
     "majorCollection": "Events",
+    "url": "",
+    "coverUrl": "",
+    "position": 0
+  },
+  {
+    "id": "major:hidden-homepage-items",
+    "source": "system",
+    "type": "major",
+    "title": "Hidden Homepage Items",
+    "description": "",
+    "parentId": "root",
+    "majorCollection": "Hidden Homepage Items",
     "url": "",
     "coverUrl": "",
     "position": 0

@@ -126,6 +126,20 @@
     "source": "patristic_api"
   },
   {
+    "id": 1600,
+    "parentCollectionId": 2,
+    "collectionItemId": 13580,
+    "title": "Hidden Homepage Items",
+    "description": "Hidden Homepage Items. This collection can be used to make content searchable that is not directly added to the homepage tree. Do not delete.",
+    "slug": "hidden-homepage-items",
+    "url": "https://app.patristicnectar.org/discover/hidden-homepage-items",
+    "coverUrl": "",
+    "position": 212,
+    "depth": 1,
+    "majorCollection": "Hidden Homepage Items",
+    "source": "patristic_api"
+  },
+  {
     "id": 1599,
     "parentCollectionId": 956,
     "collectionItemId": 13570,
