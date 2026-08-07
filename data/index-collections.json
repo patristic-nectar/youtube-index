@@ -143,19 +143,6 @@
     "sourceId": "1600"
   },
   {
-    "id": "pat:collection:1592",
-    "source": "patristic_api",
-    "type": "collection",
-    "title": "Hidden Gems",
-    "description": "",
-    "parentId": "major:lectures",
-    "majorCollection": "Lectures",
-    "url": "https://app.patristicnectar.org/discover/hidden-gems",
-    "coverUrl": "",
-    "position": 1,
-    "sourceId": "1592"
-  },
-  {
     "id": "pat:collection:956",
     "source": "patristic_api",
     "type": "collection",
@@ -245,6 +232,19 @@
     "coverUrl": "",
     "position": 0,
     "sourceId": "1561"
+  },
+  {
+    "id": "pat:collection:1503",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "Sacred Music",
+    "description": "Sacred Music List",
+    "parentId": "major:sacred-music",
+    "majorCollection": "Sacred Music",
+    "url": "https://app.patristicnectar.org/discover/sacred-music",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/honeycomb-music.png",
+    "position": 1,
+    "sourceId": "1503"
   },
   {
     "id": "yt:collection:PLuPBy_6R3BLbu6kg_Sd9AB2ulJJr4YBuM",
@@ -5694,6 +5694,84 @@
     "sourceId": "1430"
   },
   {
+    "id": "pat:collection:1505",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "Akolouthia of St. Raphael, Bishop of Brooklyn",
+    "description": "St. Raphael (Hawaweeny) was the first Orthodox bishop ever consecrated in America. He came to this land in 1895 and poured out his apostolic life as a missionary bishop, establishing more than thirty parishes, gathering the lost sheep in America, and preaching the Gospel. He reposed in 1915, and was glorified as a saint by the church in 2000. He is a mighty patron of Orthodox Christianity in America, and this magnificent Akolouthia is chanted by one of his most devoted servants in America.",
+    "parentId": "pat:collection:1503",
+    "majorCollection": "Sacred Music",
+    "url": "https://app.patristicnectar.org/discover/akolouthia-of-st-raphael-bishop-of-brooklyn",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/akolouthia.jpeg",
+    "position": 0,
+    "sourceId": "1505"
+  },
+  {
+    "id": "pat:collection:1509",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "Byzantine Chant Training (Orthros)",
+    "description": "Byzantine Chant Training for Orthros by Bishop Basil. This audio, virtually twice as long as the Vespers chant training audio, covers most of the standard hymnody of Orthros. How this audio came to be&hellip; Many years ago a young man upon being ordained into the Holy Orthodox Priesthood found himself with the tremendous blessing and daunting task of leading the people of God pastorally as well as in the divine services. One of the great early challenges, among many, was learning how to proficiently chant according to the ancient traditions and tones of the Church. It was because of this that Bishop Basil lovingly created these audio recordings and provided this young priest with a model and training sessions of how to properly chant for the Church and Her Services. The following are those same exact audio files - recorded in a bathroom! These have been digitally enhanced and are now offered to you by Patristic Nectar Publications. Our hope is that others who find themselves in a similar circumstance or simply with the desire to learn have available to them an exceptional model and training resource. May these be richly edifying for those who seek to learn how to chant. Bishop Basil of the Diocese of Wichita and Mid-America (Antiochian Archdiocese) is one of the premier liturgists in the contemporary Orthodox world. He is a former instructor of Byzantine Chant at St. Vladimir's Orthodox Theological Seminary where a Chair of Byzantine Liturgical Music was established in his name in 2010. He is also the author of The Liturgikon: The Book of Divine Services for the Priest and Deacon published originally in 1989, now in its 3rd edition, and considered by many to be the premier Ieratikon in the English language. He himself has composed and/or arranged numerous Byzantine music settings in his Contemporary Byzantine Music project. We provide a note: The training recordings were made using old technology years ago and recorded informally by Bishop Basil. Some selections end abruptly, and they are not of the quality one would achieve in a recording studio. But even so, these endearing efforts to train a young priest are treasures and the young priest's ability to chant and serve his parish over the years is a testimony to their value.",
+    "parentId": "pat:collection:1503",
+    "majorCollection": "Sacred Music",
+    "url": "https://app.patristicnectar.org/discover/byzantine-chant-training-orthros",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/orthros.jpeg",
+    "position": 1,
+    "sourceId": "1509"
+  },
+  {
+    "id": "pat:collection:1508",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "Byzantine Chant Training (Vespers)",
+    "description": "Byzantine Chant Training for Vespers by Bishop Basil. This audio covers most of the standard hymnody of Vespers. How this audio came to be&hellip; Many years ago a young man upon being ordained into the Holy Orthodox Priesthood found himself with the tremendous blessing and daunting task of leading the people of God pastorally as well as in the divine services. One of the great early challenges, among many, was learning how to proficiently chant according to the ancient traditions and tones of the Church. It was because of this that Bishop Basil lovingly created these audio recordings and provided this young priest with a model and training sessions of how to properly chant for the Church and Her Services. The following are those same exact audio files. These have been digitally enhanced and are now offered to you by Patristic Nectar Publications. Our hope is that others who find themselves in a similar circumstance or simply with the desire to learn have available to them an exceptional model and training resource. May these be richly edifying for those who seek to learn how to chant. Bishop Basil of the Diocese of Wichita and Mid-America (Antiochian Archdiocese) is one of the premier liturgists in the contemporary Orthodox world. He is a former instructor of Byzantine Chant at St. Vladimir's Orthodox Theological Seminary where a Chair of Byzantine Liturgical Music was established in his name in 2010. He is also the author of The Liturgikon: The Book of Divine Services for the Priest and Deacon published originally in 1989, now in its 3rd edition, and considered by many to be the premier Ieratikon in the English language. He himself has composed and/or arranged numerous Byzantine music settings in his Contemporary Byzantine Music project. We provide a note: The training recordings were made using old technology years ago and recorded informally by Bishop Basil. Some selections end abruptly, and they are not of the quality one would achieve in a recording studio. But even so, these endearing efforts to train a young priest are treasures and the young priest's ability to chant and serve his parish over the years is a testimony to their value.",
+    "parentId": "pat:collection:1503",
+    "majorCollection": "Sacred Music",
+    "url": "https://app.patristicnectar.org/discover/byzantine-chant-training-vespers",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/vespers.jpeg",
+    "position": 2,
+    "sourceId": "1508"
+  },
+  {
+    "id": "pat:collection:1510",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "Byzantine Chant Training: Selections from Great Lent and Holy Week",
+    "description": "These selections are chanted by His Grace, Bishop Basil (Essey) together with clergy of the Antiochian Archdiocese.",
+    "parentId": "pat:collection:1503",
+    "majorCollection": "Sacred Music",
+    "url": "https://app.patristicnectar.org/discover/byzantine-chant-training-selections-from-great-lent-and-holy-week",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/great-lent.jpeg",
+    "position": 3,
+    "sourceId": "1510"
+  },
+  {
+    "id": "pat:collection:1507",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "The Byzantine Hymnody of the Great Feast of the Holy Dormition of the Theotokos chanted in English and Arabic",
+    "description": "Dr. Cohlmia, the chanter for this hymnody. He is a board-certified ophthalmologist in Wichita, Kansas (1997-present), and has been a faithful member of the Antiochian Orthodox Church since birth. Dr. Cohlmia was born in Beirut, Lebanon and emigrated to the United States at the age of 15 where he obtained his collegiate and doctoral education. He is the Protopsaltis of the Diocese of Wichita and Mid-America (2006-present). He also serves on the Archdiocesan Department of Liturgics and translation, aiding in the translation of the Arabic and Greek Typika in order to arrange the English as well as the bilingual (English-Arabic) weekly and festal liturgical notes.",
+    "parentId": "pat:collection:1503",
+    "majorCollection": "Sacred Music",
+    "url": "https://app.patristicnectar.org/discover/the-byzantine-hymnody-of-the-great-feast-of-the-holy-dormition-of-the-theotokos-chanted-in-english-and-arabic",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/bzyantine-hymnody-dormition.jpeg",
+    "position": 4,
+    "sourceId": "1507"
+  },
+  {
+    "id": "pat:collection:1504",
+    "source": "patristic_api",
+    "type": "collection",
+    "title": "Sacred Psalmody",
+    "description": "The sacred psalter has long been the central prayer book of the Church, and the heart of Her liturgical services. Here we have a collection of commonly sung Psalms performed by chanters of St. Andrew Orthodox Church, Riverside, California. Each psalm is given a brief theological introduction by Fr. Josiah Trenham. We hope that this recording will provide pleasure to your ears, and enable you to more actively participate in the holy services, while manifesting to you the depth and wisdom of these sacred prayers.",
+    "parentId": "pat:collection:1503",
+    "majorCollection": "Sacred Music",
+    "url": "https://app.patristicnectar.org/discover/sacred-psalmody",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/whatsapp-image-2026-08-05-at-94324-am.jpeg",
+    "position": 5,
+    "sourceId": "1504"
+  },
+  {
     "id": "pat:collection:1575",
     "source": "patristic_api",
     "type": "collection",
@@ -7164,6 +7242,18 @@
     "description": "",
     "parentId": "root",
     "majorCollection": "Recently Played",
+    "url": "",
+    "coverUrl": "",
+    "position": 0
+  },
+  {
+    "id": "major:sacred-music",
+    "source": "system",
+    "type": "major",
+    "title": "Sacred Music",
+    "description": "",
+    "parentId": "root",
+    "majorCollection": "Sacred Music",
     "url": "",
     "coverUrl": "",
     "position": 0
