@@ -38247,6 +38247,25 @@
     "source": "patristic_api"
   },
   {
+    "id": 6570,
+    "parentCollectionId": 1565,
+    "collectionItemId": 13630,
+    "title": "Video #1 - The Virgin Mary: A Convert's Story",
+    "description": "Conference 2021",
+    "slug": "video-1-the-virgin-mary-a-converts-story",
+    "externalId": "",
+    "url": "https://app.patristicnectar.org/discover/video-1-the-virgin-mary-a-converts-story",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/mother-of-god-in-our-lives-sq.jpg",
+    "availableAt": "2026-01-01T13:01:00.000Z",
+    "assetType": null,
+    "durationSeconds": 0,
+    "position": 100,
+    "depth": 3,
+    "majorCollection": "All Conference Videos",
+    "contentType": "lecture",
+    "source": "patristic_api"
+  },
+  {
     "id": 6012,
     "parentCollectionId": 1566,
     "collectionItemId": 12891,
