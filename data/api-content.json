@@ -6441,25 +6441,6 @@
     "source": "patristic_api"
   },
   {
-    "id": 5012,
-    "parentCollectionId": 1019,
-    "collectionItemId": 10698,
-    "title": "Lecture 3: Food Offered to Idols: Christian Living in a Pagan Milieu",
-    "description": "",
-    "slug": "ls0840004",
-    "externalId": "LS0840.004",
-    "url": "https://app.patristicnectar.org/discover/ls0840004",
-    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/you-belong-to-christ-sku-ls065-updated.jpg",
-    "availableAt": "2023-10-27T00:00:00.000Z",
-    "assetType": "AUDIO",
-    "durationSeconds": 4342.517551020408,
-    "position": 4,
-    "depth": 3,
-    "majorCollection": "Theological Lectures",
-    "contentType": "podcast",
-    "source": "patristic_api"
-  },
-  {
     "id": 3002,
     "parentCollectionId": 1019,
     "collectionItemId": 10699,
