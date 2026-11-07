@@ -140,6 +140,20 @@
     "source": "patristic_api"
   },
   {
+    "id": 1601,
+    "parentCollectionId": 956,
+    "collectionItemId": 13687,
+    "title": "The Apologists: Defending the Faith in the Early Centuries",
+    "description": "Patristic Nectar is pleased to present a new six-lecture series by Father Josiah entitled The Apologists . Throughout the history of the Church her great apologists have labored to set forth the truth of the Christian faith in order to win the nations to Christ, to refute those who publicly contradict Orthodoxy, to guide those who are inquiring about the Gospel, and to strengthen believers who are weak. This series examines the apologetics of the early Church as articulated by champions such as St. Justin Martyr and his 1st and 2nd Apologies, the apologies of Ss. Quadratus and Aristides, Tertullian's Apologeticum , St. Theophilos' Ad Autolycus , Clement of Alexandria's An Exhortation to the Greeks, and Origen's massive Contra Celsum. Though these apologists defending the Christian faith against Greek paganism and not the array of secular ideologies threatening the Church today, their courageous and highly intellectual defense of the Church is greatly encouraging for contemporary believers and provides beautiful examples to be imitated. Lecture #1 St. Justin Martyr and his 1st and 2nd Apologies Lecture #2 Ss. Quadratus and Aristides Lecture #3 Tertullian's Apologeticum Lecture #4 St. Theophilos' Ad Autolycus Lecture #5 Clement of Alexandria's An Exhortation to the Greeks Lecture #6 Origen's Contra Celsum",
+    "slug": "the-apologists-defending-the-faith-in-the-early-centuries",
+    "url": "https://app.patristicnectar.org/discover/the-apologists-defending-the-faith-in-the-early-centuries",
+    "coverUrl": "https://ott-patristic-production-assets.b-cdn.net/assets/public/apologists-square.jpeg",
+    "position": 12.5,
+    "depth": 2,
+    "majorCollection": "Theological Lectures",
+    "source": "patristic_api"
+  },
+  {
     "id": 1599,
     "parentCollectionId": 956,
     "collectionItemId": 13570,
