@@ -1,33 +1,15 @@
 name: Update Unified Index Data
 
 on:
-  # Run three times a day (02:17, 06:17, 22:17 UTC), off the hour where GitHub delays fewer runs
-  schedule:
-    - cron: '17 2,6,22 * * *'
-
-  # Allow manual triggering for testing
+  # No GitHub schedule: GitHub can delay a scheduled run by hours, into Mon-Fri 07:00-15:30 Central.
+  # A timer on the maintainer's machine dispatches this at 02:17, 06:17 and 22:17 UTC, outside that window.
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  # GitHub can delay a scheduled run by hours: skip any that lands Mon-Fri 07:00-15:30 Central
-  window:
-    runs-on: ubuntu-latest
-    outputs:
-      skip: ${{ steps.check.outputs.skip }}
-    steps:
-      - id: check
-        run: |
-          d=$(TZ=America/Chicago date +%u); t=$(TZ=America/Chicago date +%H%M)
-          if [ "${{ github.event_name }}" = schedule ] && [ "$d" -le 5 ] && [ "$t" -ge 0700 ] && [ "$t" -lt 1530 ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
-
   fetch-data:
-    needs: window
-    if: needs.window.outputs.skip != 'true'
     runs-on: ubuntu-latest
 
     steps:
